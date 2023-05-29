@@ -5,12 +5,12 @@
 fn main() {
     tauri::Builder::default()
         .manage(BoardState::default())
-        .invoke_handler(tauri::generate_handler![init_game])
+        .invoke_handler(tauri::generate_handler![init_game, draw_turn])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
-////
+//// tauri commands
 #[tauri::command(rename_all = "snake_case")]
 fn init_game(board_state: State<'_, BoardState>) -> Result<Board, String> {
 
@@ -25,6 +25,16 @@ fn init_game(board_state: State<'_, BoardState>) -> Result<Board, String> {
 
     Ok(board.clone())
 }
+
+#[tauri::command(rename_all = "snake_case")]
+fn draw_turn(board_state: State<'_, BoardState>) -> usize {
+
+    let board = board_state.0.lock().expect("could not lock board game");
+    let roll_value = board.dice.draw();
+    roll_value
+}
+
+/////////////
 
 use std::{sync::{Mutex, Arc}};
 use serde::Serialize;
@@ -85,5 +95,31 @@ impl Default for Board {
         let next = players.choose(&mut rand::thread_rng()).unwrap().player_id;
 
         Board { ladders: ladders, snakes: snakes, players: players, next: next, dice: Dice{} }
+    }
+}
+
+trait GameActions {
+    fn step(&mut self);
+    fn win(&self) -> bool;
+    fn switch(&mut self);
+    fn play(&mut self);
+}
+
+impl GameActions for Board {
+
+    fn step(&mut self) {
+        todo!()
+    }
+
+    fn win(&self) -> bool {
+        todo!()
+    }
+
+    fn switch(&mut self) {
+        self.next = 1 - self.next;
+    }
+
+    fn play(&mut self) {
+        todo!()
     }
 }
