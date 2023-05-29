@@ -117,6 +117,47 @@ async function build_sliders(items, type, board_dim, board_length) {
 
 async function build_players(n) {
   
+  // make n players (typical n=2) that are dragable around the board
+  // https://www.w3schools.com/howto/howto_js_draggable.asp
+  function make_draggable(element) {
+
+    let old_x=0;
+    let old_y=0;
+    let new_x=0;
+    let new_y=0;
+    element.onmousedown = drag_mouse_down;
+
+    function drag_mouse_down(e) {
+
+      e.preventDefault();
+      old_x = e.clientX;
+      old_y = e.clientY;
+      
+      document.onmouseup = close_drag;
+      document.onmousemove = drag;
+
+    }
+
+    function drag(e) {
+
+      e.preventDefault();
+      new_x = old_x - e.clientX;
+      new_y = old_y - e.clientY;
+      old_x = e.clientX;
+      old_y = e.clientY;
+
+      element.style.top = (element.offsetTop - new_y) + "px";
+      element.style.left = (element.offsetLeft - new_x) + "px";
+    }
+
+
+    function close_drag(e) {
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
+
+  }
+
   let canvas = document.querySelector("#board_canvas");
   let container = document.querySelector("#container");
 
@@ -139,6 +180,7 @@ async function build_players(n) {
     player.style.left = left;
     player.id = player_id;
     container.appendChild(player);
+    make_draggable(player);
   }
 
 }
@@ -171,7 +213,7 @@ window.addEventListener("DOMContentLoaded", async function () {
     // retrive serialized board from backend
     let board = await invoke('init_game').then((response) => response ).catch((e) => console.error(e));
 
-    // build initial screen (board, snakes, ladders, players, dice)
+    // build initial screen (board, snakes, ladders, draggable players, dice)
     e.preventDefault();
     await build_board(board_dim, board_length);
     build_sliders(board.ladders, "ladder", board_dim, board_length);
@@ -185,7 +227,6 @@ window.addEventListener("DOMContentLoaded", async function () {
       let roll_value = await invoke('draw_turn').then((response) => response).catch((e) => console.error(e));
       // set rolled value on screen for user
       document.querySelector("#roll_show").innerHTML = roll_value;
-
 
     });
 
