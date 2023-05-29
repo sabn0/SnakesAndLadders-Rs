@@ -29,7 +29,7 @@ fn init_game(board_state: State<'_, BoardState>) -> Result<Board, String> {
 use std::{sync::{Mutex, Arc}};
 use serde::Serialize;
 use tauri::State;
-use rand::{self, seq::{SliceRandom, IteratorRandom}};
+use rand::{self, seq::{SliceRandom, IteratorRandom}, Rng};
 
 // need to implement default and serialize
 #[derive(Default)]
@@ -52,6 +52,16 @@ pub struct Board {
     players: Vec<Player>,
     next: usize,
     dice: Dice
+}
+
+trait Roll {
+    fn draw(&self) -> usize;
+}
+
+impl Roll for Dice {
+    fn draw(&self) -> usize {
+        rand::thread_rng().gen_range(1..=6)
+    }
 }
 
 
