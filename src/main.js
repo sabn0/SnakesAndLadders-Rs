@@ -69,7 +69,6 @@ async function build_sliders(items, type, board_dim, board_length) {
 
     let start = items[i][0];
     let end = items[i][1];
-    console.log(i);
 
     // top left x y computation
     let y_end = board_length - (board_length * (Math.floor(end / board_dim) / board_dim)) - (square_length / 2);
@@ -110,8 +109,6 @@ async function build_sliders(items, type, board_dim, board_length) {
       ctx.restore();
 
     };
-
-    console.log(start, end, top_left_x, top_left_y, bottom_right_x, bottom_right_y, angle_degress, adjacent, opposite);
 
   }
 
