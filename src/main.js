@@ -30,6 +30,8 @@ async function build_board(board_dim, board_length) {
   let ctx = canvas.getContext("2d");
   ctx.canvas.width  = window.innerWidth;
   ctx.canvas.height = window.innerHeight;
+  ctx.canvas.top_left_x = 0;
+  ctx.canvas.top_left_y = 0;
   let square_length = board_length / board_dim;
 
   for (var i = 0; i < board_dim; i++) {
@@ -78,8 +80,6 @@ async function build_sliders(items, type, board_dim, board_length) {
     let top_left_y = Math.min(y_start, y_end);
     let bottom_right_x = Math.max(x_start, x_end);
     let bottom_right_y = Math.max(y_start, y_end);
-    let x_mid = (bottom_right_x - top_left_x) / 2;
-    let y_mid = (bottom_right_y - top_left_y) / 2;
 
     // rotation computation
     let adjacent = bottom_right_y - top_left_y;
@@ -103,11 +103,9 @@ async function build_sliders(items, type, board_dim, board_length) {
 
       ctx.save();
 
-      ctx.translate( bottom_right_x+ (width / 2), top_left_y + (height / 2));
-      
-      ctx.rotate(rotation);
-
-      ctx.drawImage(img, -width / 2, -height / 2, width, height);
+      ctx.translate(x_end, y_end);
+      ctx.rotate( rotation );
+      ctx.drawImage(img, 0, 0, width, height);
 
       ctx.restore();
 
@@ -137,6 +135,7 @@ window.addEventListener("DOMContentLoaded", async function () {
     e.preventDefault();
     await build_board(board_dim, board_length);
     build_sliders(board.ladders, "ladder", board_dim, board_length);
+    build_sliders(board.snakes, "snake", board_dim, board_length);
   });
 
 });
