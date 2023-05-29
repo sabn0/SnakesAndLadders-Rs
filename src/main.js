@@ -25,6 +25,7 @@ async function build_board(board_dim, board_length) {
   // create a colored square for every position on the board
   let canvas = document.createElement("canvas");
   canvas.id = "board_canvas";
+  canvas.style.position = "relative";
   document.querySelector("#container").appendChild(canvas);
 
   let ctx = canvas.getContext("2d");
@@ -57,8 +58,8 @@ async function build_board(board_dim, board_length) {
 
 async function build_sliders(items, type, board_dim, board_length) {
 
- // receive an array of ladders or snakes of shape [[start, end], [start, end], ...]
-    // draw the items on the array 
+  // receive an array of ladders or snakes of shape [[start, end], [start, end], ...]
+  // draw the items on the array 
 
   let square_length = board_length / board_dim;
   let canvas = document.querySelector("#board_canvas");
@@ -115,7 +116,31 @@ async function build_sliders(items, type, board_dim, board_length) {
 }
 
 async function build_players(n) {
-  //
+  
+  let canvas = document.querySelector("#board_canvas");
+  let container = document.querySelector("#container");
+
+  // receive number of players and build img objects
+  for (var i = 0; i < n; i ++ ) {
+    
+    // height position
+    let top = (canvas.height - 50).toString() + "px";
+    let left = (10 + (i * 2.5 * 10)).toString() + "px";
+
+    let player_id = "player" + i.toString();
+    let asset = assets_path + player_id + ".png";
+    
+    let player = document.createElement('img');
+    player.src = asset;
+    player.width = "20";
+    player.height = "20";
+    player.style.position = "absolute";
+    player.style.top = top;
+    player.style.left = left;
+    player.id = player_id;
+    container.appendChild(player);
+  }
+
 }
 
 window.addEventListener("DOMContentLoaded", async function () {
@@ -133,6 +158,7 @@ window.addEventListener("DOMContentLoaded", async function () {
     await build_board(board_dim, board_length);
     build_sliders(board.ladders, "ladder", board_dim, board_length);
     build_sliders(board.snakes, "snake", board_dim, board_length);
+    build_players(2);
   });
 
 });
