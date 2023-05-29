@@ -143,6 +143,23 @@ async function build_players(n) {
 
 }
 
+async function build_dice() {
+
+  let container = document.querySelector("#container");
+  
+  let roll_button = document.createElement("button");
+  roll_button.type = "button";
+  roll_button.innerHTML = "Roll!";
+  roll_button.id = "roll_button";
+  container.appendChild(roll_button);
+
+  let roll_show = document.createElement("label");
+  roll_show.textContent = "";
+  roll_show.id = "roll_show";
+  container.appendChild(roll_show);
+  
+}
+
 window.addEventListener("DOMContentLoaded", async function () {
 
   container = document.querySelector("#container");
@@ -154,11 +171,25 @@ window.addEventListener("DOMContentLoaded", async function () {
     // retrive serialized board from backend
     let board = await invoke('init_game').then((response) => response ).catch((e) => console.error(e));
 
+    // build initial screen (board, snakes, ladders, players, dice)
     e.preventDefault();
     await build_board(board_dim, board_length);
     build_sliders(board.ladders, "ladder", board_dim, board_length);
     build_sliders(board.snakes, "snake", board_dim, board_length);
     build_players(2);
+    build_dice();
+
+    // set listener for dice
+    document.querySelector("#roll_button").addEventListener("click", async function (e) {
+
+      let roll_value = await invoke('draw_turn').then((response) => response).catch((e) => console.error(e));
+      // set rolled value on screen for user
+      document.querySelector("#roll_show").innerHTML = roll_value;
+
+
+    });
+
+
   });
 
 });
