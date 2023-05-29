@@ -145,10 +145,12 @@ async function build_players(n) {
 
 }
 
-async function make_draggable(element) {
+async function make_draggable(element, dist_rect) {
 
   // https://www.w3schools.com/howto/howto_js_draggable.asp
-  
+  // dist_rec: {x, y, width, height}
+  let base_x=0;
+  let base_y=0;
   let old_x=0;
   let old_y=0;
   let new_x=0;
@@ -161,8 +163,11 @@ async function make_draggable(element) {
     e.preventDefault();
     old_x = e.clientX;
     old_y = e.clientY;
-    
-    document.onmouseup = close_drag;
+
+    base_x = element.style.left;
+    base_y = element.style.top;
+
+    document.onmouseup = release;
     document.onmousemove = drag;
 
   }
@@ -170,19 +175,35 @@ async function make_draggable(element) {
   function drag(e) {
 
     e.preventDefault();
+
     new_x = old_x - e.clientX;
     new_y = old_y - e.clientY;
     old_x = e.clientX;
     old_y = e.clientY;
-
+  
     element.style.top = (element.offsetTop - new_y) + "px";
     element.style.left = (element.offsetLeft - new_x) + "px";
+
+
   }
 
 
-  function close_drag(e) {
+  function release(e) {
+
     document.onmouseup = null;
     document.onmousemove = null;
+
+    let x_cond = (dist_rect.x < e.pageX) && (e.pageX < dist_rect.x + dist_rect.width);
+    let y_cond = (dist_rect.y < e.pageY) && (e.pageY < dist_rect.y + dist_rect.height);
+
+    if (!(x_cond && y_cond)) {
+
+      element.style.top = base_y;
+      element.style.left = base_x;
+
+    }
+
+
   }
 
 }
@@ -206,6 +227,24 @@ async function build_dice() {
   
 }
 
+function get_dist_rect(current_value, dice_value, board_dim, board_length) {
+
+  let dist_value = current_value + dice_value;
+  let square_length = board_length / board_dim;
+  
+  let y = board_length - (board_length * (Math.floor(dist_value / board_dim) / board_dim)) - square_length;
+  let x = board_length * ((dist_value % board_dim) / board_dim) - square_length;
+
+  let dist_rect = {
+    x: x,
+    y: y,
+    width: square_length,
+    height: square_length
+  };
+
+  return dist_rect
+
+}
 
 window.addEventListener("DOMContentLoaded", async function () {
 
@@ -225,8 +264,6 @@ window.addEventListener("DOMContentLoaded", async function () {
     build_sliders(board.snakes, "snakes", board_dim, board_length);
     build_dice();
     build_players(2);
-    // make the first player draggable for user 
-    make_draggable(document.getElementById("0"));
 
     // highlight next turn player?
 
@@ -237,6 +274,11 @@ window.addEventListener("DOMContentLoaded", async function () {
       let roll_value = await invoke('draw_turn').then((response) => response).catch((e) => console.error(e));
       // set rolled value on screen for user
       document.querySelector("#roll_show").innerHTML = roll_value;
+
+      // make the first player draggable for user
+      let current_position = board.players[0].position;
+      let dist_rect = get_dist_rect(current_position, roll_value, board_dim, board_length);
+      make_draggable(document.getElementById("0"), dist_rect);
 
       // get state from backend, make player draggble to distination
 
