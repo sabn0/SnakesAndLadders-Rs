@@ -23,7 +23,7 @@
       "targets": "all",
       "identifier": "com.tauri.dev",
       "icon": [
-        "icons/32x32.png"
+        "icons/tauri_icon.png"
       ]
     },
     "security": {
