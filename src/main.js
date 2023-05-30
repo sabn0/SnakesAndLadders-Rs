@@ -98,15 +98,13 @@ async function build_sliders(items, type, board_dim, board_length) {
 
     var img = new Image();
     img.src = asset;
-    
+
     img.onload = function () {
 
       ctx.save();
-
       ctx.translate(x_end, y_end);
       ctx.rotate( rotation );
       ctx.drawImage(img, 0, 0, width, height);
-
       ctx.restore();
 
     };
@@ -187,27 +185,34 @@ async function make_draggable(element, dist_rect) {
 
   }
 
-
   function release(e) {
 
     document.onmouseup = null;
     document.onmousemove = null;
 
-    let x_cond = (dist_rect.x < e.pageX) && (e.pageX < dist_rect.x + dist_rect.width);
-    let y_cond = (dist_rect.y < e.pageY) && (e.pageY < dist_rect.y + dist_rect.height);
+    //let x_cond = (dist_rect.x < e.pageX) && (e.pageX < dist_rect.x + dist_rect.width);
+    //let y_cond = (dist_rect.y < e.pageY) && (e.pageY < dist_rect.y + dist_rect.height);
+    let x_bound_check = x_bounds(e.pageX, dist_rect.x, dist_rect.width);
+    let y_bound_check = y_bounds(e.pageY, dist_rect.y, dist_rect.height);
 
-    if (!(x_cond && y_cond)) {
+    if (!(x_bound_check && y_bound_check)) {
 
       element.style.top = base_y;
       element.style.left = base_x;
 
     }
 
-
   }
 
 }
 
+function x_bounds(x, left_bound, width) {
+  return (left_bound < x) && (x < (left_bound + width))
+}
+
+function y_bounds(y, top_bound, height) {
+  return (top_bound < y) && (y < (top_bound + height))
+}
 
 async function build_dice() {
 
@@ -227,13 +232,27 @@ async function build_dice() {
   
 }
 
+function square_to_x(square, board_dim, board_length) {
+ 
+  let x = board_length * ((square % board_dim) / board_dim);
+  return x
+  
+}
+
+function square_to_y(square, board_dim, board_length) {
+ 
+  let y = board_length - (board_length * (Math.floor(square / board_dim) / board_dim));
+  return y
+  
+}
+
 function get_dist_rect(current_value, dice_value, board_dim, board_length) {
 
-  let dist_value = current_value + dice_value;
+  let dist_square = current_value + dice_value;
   let square_length = board_length / board_dim;
   
-  let y = board_length - (board_length * (Math.floor(dist_value / board_dim) / board_dim)) - square_length;
-  let x = board_length * ((dist_value % board_dim) / board_dim) - square_length;
+  let y = square_to_y(dist_square, board_dim, board_length) - square_length;
+  let x = square_to_x(dist_square, board_dim, board_length) - square_length;
 
   let dist_rect = {
     x: x,
@@ -246,11 +265,42 @@ function get_dist_rect(current_value, dice_value, board_dim, board_length) {
 
 }
 
+async function delay_game(delay_period) {
+  await new Promise(resolve => setTimeout(resolve, delay_period));
+}
+
+async function move_element(element, dist_rect) {
+
+  let dist_x = dist_rect.x + dist_rect.width / 2;
+  let dist_y = dist_rect.y + dist_rect.height / 2;
+  let margin_x = dist_x - element.style.left;
+  let margin_y = dist_y - element.style.top;
+
+  var move = setInterval(function() {
+    
+    element.style.left = element.offsetLeft + 1 + 'px';
+    element.style.top += element.offsetTop + (margin_y/margin_x) + 'px';
+
+    let x_cond = x_bounds(element.offsetLeft, dist_rect.x, dist_rect.width);
+    let y_cond = y_bounds(element.offsetTop, dist_rect.y, dist_rect.height);
+
+    if (x_cond && y_cond) {
+      clearInterval(move);
+    }
+
+  }, 10);
+
+
+
+}
+
 window.addEventListener("DOMContentLoaded", async function () {
 
   container = document.querySelector("#container");
   let board_dim = 10;
   let board_length = 600;
+  let n_players = 2;
+  let delay_period = 3000;
 
   document.querySelector("#start_button").addEventListener("click", async function (e) {
 
@@ -263,27 +313,72 @@ window.addEventListener("DOMContentLoaded", async function () {
     build_sliders(board.ladders, "ladders", board_dim, board_length);
     build_sliders(board.snakes, "snakes", board_dim, board_length);
     build_dice();
-    build_players(2);
+    build_players(n_players);
+
+    // play a turn while game doesn't end
+    let is_win = await invoke('is_win', {board_length: board_length}).then((response) => response ).catch((e) => console.error(e));
+    do {
+      
+      // draw a dice value and switch to next player
+      let roll_value = await invoke('draw_turn').then((response) => response).catch((e) => console.error(e));
+      let next_player = await invoke('switch_player').then((response) => response).catch((e) => console.error(e));
+
+      // compute this player position and distination
+      let player_element = document.getElementById(next_player.toString());
+      let player_position = board.players[next_player].position;
+      let distination_rect = get_dist_rect(player_position, roll_value, board_dim, board_length);
+
+      console.log(player_element);
+      console.log("prepare for switch");
+
+      if (next_player === 0) {
+          // if next is user : wait for roll button press, show value, make pawn draggable ..
+          console.log("in 0");
+          document.querySelector("#roll_button").addEventListener("click", async function (e) {
+      
+            // show rolled value to user
+            document.querySelector("#roll_show").innerHTML = roll_value;
+    
+            // make pawn draggable so that the user can move it to distination
+            make_draggable(player_element, distination_rect);
+          
+            // hide rolled value ? maybe move from here
+            document.querySelector("#roll_show").innerHTML = "";
+
+          });
+          console.log("finished 0");
+
+      } else {
+
+          // else : move opponent pawn to distination
+          // for the user to see, we want to show the rolled dice, wait, then move the pawn smoothly 
+
+          console.log("in 1");
+          // show rolled value to user
+          document.querySelector("#roll_show").innerHTML = roll_value;
+
+          // move smooth
+          move_element(player_element, distination_rect);
+
+          // hide rolled value ? maybe move from here
+          document.querySelector("#roll_show").innerHTML = "";
+          console.log("finished 1");
+
+
+      }
+
+
+      // delay game before continuing
+      delay_game(delay_period);
+
+      console.log("done iter");
+      is_win = await invoke('is_win', {board_length: board_length}).then((response) => response ).catch((e) => console.error(e));
+
+
+    }
+    while ( !is_win );
 
     // highlight next turn player?
-
-
-    // set listener for dice
-    document.querySelector("#roll_button").addEventListener("click", async function (e) {
-
-      let roll_value = await invoke('draw_turn').then((response) => response).catch((e) => console.error(e));
-      // set rolled value on screen for user
-      document.querySelector("#roll_show").innerHTML = roll_value;
-
-      // make the first player draggable for user
-      let current_position = board.players[0].position;
-      let dist_rect = get_dist_rect(current_position, roll_value, board_dim, board_length);
-      make_draggable(document.getElementById("0"), dist_rect);
-
-      // get state from backend, make player draggble to distination
-
-
-    });
 
 
   });
