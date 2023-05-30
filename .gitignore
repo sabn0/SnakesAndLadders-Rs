@@ -1,0 +1,6 @@
+src-tauri/target/
+src-tauri/Cargo.lock
+.vscode
+node_modules
+package-lock.json
+todo.txt
