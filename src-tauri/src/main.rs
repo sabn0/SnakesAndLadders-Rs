@@ -108,7 +108,7 @@ trait Roll {
 
 impl Roll for Dice {
     fn draw(&self) -> usize {
-        rand::thread_rng().gen_range(1..=20)
+        rand::thread_rng().gen_range(1..=6)
     }
 }
 
@@ -118,7 +118,7 @@ impl Default for Board {
     fn default() -> Self {
 
         let board_dim = 10;
-        let n = 2*2*8; // have 3 snakes and 3 letters
+        let n = 2*2*3; // have 3 snakes and 3 letters
 
         let sort_pair = |a: usize, b: usize| -> (usize, usize) { if a > b { (b, a) } else { (a, b) } };
 
