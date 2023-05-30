@@ -242,8 +242,6 @@ async function build_dice() {
 function square_to_x(square, board_dim, board_length) {
  
   let x = board_length * ((square % board_dim) / board_dim);
-  console.log(square);
-  console.log(x);
   return x
   
 }
@@ -251,8 +249,6 @@ function square_to_x(square, board_dim, board_length) {
 function square_to_y(square, board_dim, board_length) {
  
   let y = board_length - (board_length * (Math.floor(square / board_dim) / board_dim));
-  console.log(square);
-  console.log(y);
   return y
   
 }
@@ -263,7 +259,7 @@ function get_dist_rect(current_value, dice_value, board_dim, board_length) {
   let square_length = board_length / board_dim;
   
   let y = square_to_y(dist_square, board_dim, board_length) - square_length;
-  let x = square_to_x(dist_square, board_dim, board_length) - square_length;
+  let x = square_to_x(dist_square, board_dim, board_length);
 
   let dist_rect = {
     x: x,
@@ -337,7 +333,8 @@ window.addEventListener("DOMContentLoaded", async function () {
 
       // compute this player position and distination
       let player_element = document.getElementById(next_player.toString());
-
+      console.log("start iter");
+      console.log(next_player);
       console.log(player_element);
       console.log(player_position);
       console.log(roll_value);
@@ -346,7 +343,6 @@ window.addEventListener("DOMContentLoaded", async function () {
       if (next_player === 0) {
 
           // if next is user : wait for roll button press, show value, make pawn draggable ..
-          console.log("in 0");
           
           let _ = await new Promise( (resolve, _reject) => {
 
@@ -369,14 +365,12 @@ window.addEventListener("DOMContentLoaded", async function () {
 
           } );
 
-          console.log("finished 0");
 
       } else {
 
           // else : move opponent pawn to distination
           // for the user to see, we want to show the rolled dice, wait, then move the pawn smoothly 
 
-          console.log("in 1");
           // show rolled value to user
           document.querySelector("#roll_show").innerHTML = roll_value;
 
@@ -385,7 +379,7 @@ window.addEventListener("DOMContentLoaded", async function () {
 
           // hide rolled value ? maybe move from here
           document.querySelector("#roll_show").innerHTML = "";
-          console.log("finished 1");
+
 
       }
 
@@ -395,7 +389,6 @@ window.addEventListener("DOMContentLoaded", async function () {
       // delay game before continuing
       let _ = await delay_game(delay_period);
 
-      console.log("done iter");
       is_win = await invoke('is_win', {board_length: board_length}).then((response) => response ).catch((e) => console.error(e));
 
 
