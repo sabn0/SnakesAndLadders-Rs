@@ -271,7 +271,10 @@ function square_to_y(square, board_dim, board_length) {
 
 function get_dist_rect(current_value, dice_value, board_dim, board_length) {
 
-  let dist_square = current_value + dice_value;
+  // if the current value + dice value is witin the board, do this is dist
+  // if not, take the finish line
+
+  let dist_square = Math.min(current_value + dice_value, -1 + board_dim*board_dim);
   let square_length = board_length / board_dim;
   
   let y = square_to_y(dist_square, board_dim, board_length) - square_length;
@@ -340,6 +343,28 @@ async function bust_on_item(element, current_position, new_position, board_dim, 
 
 }
 
+function end_game(winning_player) {
+
+  // remove all content in container div
+
+  let container = document.querySelector("#container");
+  while (container.firstChild) {
+    container.removeChild(container.lastChild);
+  }
+
+  let message = document.createElement("label");
+  message.innerHTML = "";
+  message.id = "end_msg";
+  container.appendChild(message);
+
+  if (winning_player === 0) {
+    message.innerHTML = "Yon won !";
+  } else {
+    message.innerHTML = "Yon lost :( ";
+  }
+
+}
+
 window.addEventListener("DOMContentLoaded", async function () {
 
   container = document.querySelector("#container");
@@ -362,12 +387,13 @@ window.addEventListener("DOMContentLoaded", async function () {
     build_players(n_players);
 
     // play a turn while game doesn't end
-    let is_win = await invoke('is_win', {board_length: board_length}).then((response) => response ).catch((e) => console.error(e));
+    let next_player;
+    let is_win = await invoke('is_win', {finish_line: board_dim*board_dim}).then((response) => response ).catch((e) => console.error(e));
     do {
       
       // draw a dice value and switch to next player
       let roll_value = await invoke('draw_turn').then((response) => response).catch((e) => console.error(e));
-      let next_player = await invoke('switch_player').then((response) => response).catch((e) => console.error(e));
+      next_player = await invoke('switch_player').then((response) => response).catch((e) => console.error(e));
       let player_position = await invoke('get_player_position').then((response) => response).catch((e) => console.error(e));
 
       // compute this player position and distination
@@ -381,7 +407,7 @@ window.addEventListener("DOMContentLoaded", async function () {
 
           // if next is user : wait for roll button press, show value, make pawn draggable ..
           
-          let _ = await new Promise( (resolve, _reject) => {
+          await new Promise( (resolve, _reject) => {
 
             document.querySelector("#roll_button").addEventListener("click", async function (e) {
 
@@ -390,7 +416,7 @@ window.addEventListener("DOMContentLoaded", async function () {
 
               // make pawn draggable so that the user can move it to distination
               // this is also in promise, to wait until succesful movement
-              let _ = await make_draggable(player_element, distination_rect);
+              await make_draggable(player_element, distination_rect);
                   
               resolve("success");
 
@@ -409,26 +435,27 @@ window.addEventListener("DOMContentLoaded", async function () {
           document.querySelector("#roll_comp").innerHTML = roll_value;
 
           // move smooth
-          let _ = await move_element(player_element, distination_rect);
+          await move_element(player_element, distination_rect);
 
       }
 
       // backend check for position bust with snakes / ladders and update
       // backend sends back the new position. If it is the same as it was, not bust
       let new_position = await invoke('slider_bust').then((response) => response ).catch((e) => console.error(e));
-      bust_on_item(player_element, player_position + roll_value, new_position, board_dim, board_length);
+      await bust_on_item(player_element, player_position + roll_value, new_position, board_dim, board_length);
 
       // delay game before continuing
-      let _ = await delay_game(delay_period);
+      await delay_game(delay_period);
 
-      is_win = await invoke('is_win', {board_length: board_length}).then((response) => response ).catch((e) => console.error(e));
-
-
+      is_win = await invoke('is_win', {finish_line: board_dim*board_dim}).then((response) => response ).catch((e) => console.error(e));
+      console.log(is_win);
     }
     while ( !is_win );
 
-    // highlight next turn player?
-
+    
+    // print win / lose message on screen
+    await delay_game(1000);
+    end_game(next_player);
 
   });
 
