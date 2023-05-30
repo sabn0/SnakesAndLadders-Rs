@@ -294,27 +294,49 @@ function delay_game(delay_period) {
 
 function move_element(element, dist_rect) {
 
-  let dist_x = dist_rect.x + dist_rect.width / 2;
-  let dist_y = dist_rect.y;
-  let margin_x = dist_x - parseFloat(element.style.left);
-  let margin_y = dist_y - parseFloat(element.style.top);
+  return new Promise((resolve, reject) => {
 
-  let x_step = margin_x > 0 ? 1 : -1;
-  let y_step = x_step*(margin_y/margin_x);
-  var move = setInterval(function() {
+    let dist_x = dist_rect.x + dist_rect.width / 2;
+    let dist_y = dist_rect.y;
+    let margin_x = dist_x - parseFloat(element.style.left);
+    let margin_y = dist_y - parseFloat(element.style.top);
+  
+    let x_step = margin_x > 0 ? 1 : -1;
+    let y_step = x_step*(margin_y/margin_x);
+    var move = setInterval(function() {
+  
+      element.style.left = `${parseFloat(element.style.left) + x_step}px`;
+      element.style.top = `${parseFloat(element.style.top) + y_step}px`;
+  
+      let x_cond = x_bounds(parseFloat(element.style.left), dist_rect.x, dist_rect.width);
+      let y_cond = y_bounds(parseFloat(element.style.top), dist_rect.y, dist_rect.height);
+  
+      if (x_cond && y_cond) {
+        clearInterval(move);
+        resolve("success");
+      }
+  
+    }, 10);
+  
+  })
 
-    element.style.left = `${parseFloat(element.style.left) + x_step}px`;
-    element.style.top = `${parseFloat(element.style.top) + y_step}px`;
 
-    let x_cond = x_bounds(parseFloat(element.style.left), dist_rect.x, dist_rect.width);
-    let y_cond = y_bounds(parseFloat(element.style.top), dist_rect.y, dist_rect.height);
 
-    if (x_cond && y_cond) {
-      clearInterval(move);
-    }
+}
 
-  }, 10);
+async function bust_on_item(element, current_position, new_position, board_dim, board_length) {
 
+  // check if position updated by backend, if so slide it to new location
+  if (current_position === new_position) {
+    return
+  }
+
+  let square_length = board_length / board_dim;
+  let y = square_to_y(new_position, board_dim, board_length) - square_length;
+  let x = square_to_x(new_position, board_dim, board_length);
+
+  let dist_position = {x: x, y: y, width: square_length, height: square_length};
+  let _ = await move_element(element, dist_position);
 
 }
 
@@ -352,6 +374,9 @@ window.addEventListener("DOMContentLoaded", async function () {
       let player_element = document.getElementById(next_player.toString());
       let distination_rect = get_dist_rect(player_position, roll_value, board_dim, board_length);
 
+      // update backend states for new position
+      await invoke('advance', {step_size: roll_value});
+
       if (next_player === 0) {
 
           // if next is user : wait for roll button press, show value, make pawn draggable ..
@@ -378,20 +403,20 @@ window.addEventListener("DOMContentLoaded", async function () {
       } else {
 
           // else : move opponent pawn to distination
-          // for the user to see, we want to show the rolled dice, wait, then move the pawn smoothly 
+          // We want to show the rolled dice, wait, then move the pawn smoothly 
 
           // show rolled value to user
           document.querySelector("#roll_comp").innerHTML = roll_value;
 
           // move smooth
-          move_element(player_element, distination_rect);
-
-
+          let _ = await move_element(player_element, distination_rect);
 
       }
 
-      // update backend states for new position
-      await invoke('advance', {step_size: roll_value});
+      // backend check for position bust with snakes / ladders and update
+      // backend sends back the new position. If it is the same as it was, not bust
+      let new_position = await invoke('slider_bust').then((response) => response ).catch((e) => console.error(e));
+      bust_on_item(player_element, player_position + roll_value, new_position, board_dim, board_length);
 
       // delay game before continuing
       let _ = await delay_game(delay_period);
