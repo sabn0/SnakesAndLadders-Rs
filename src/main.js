@@ -143,7 +143,9 @@ async function build_players(n) {
 
 }
 
-async function make_draggable(element, dist_rect) {
+function make_draggable(element, dist_rect) {
+
+  return new Promise ( (resolve, _reject) => {
 
   // https://www.w3schools.com/howto/howto_js_draggable.asp
   // dist_rec: {x, y, width, height}
@@ -195,14 +197,19 @@ async function make_draggable(element, dist_rect) {
     let x_bound_check = x_bounds(e.pageX, dist_rect.x, dist_rect.width);
     let y_bound_check = y_bounds(e.pageY, dist_rect.y, dist_rect.height);
 
-    if (!(x_bound_check && y_bound_check)) {
-
+    if (x_bound_check && y_bound_check) {
+      resolve("success");
+    } else {
       element.style.top = base_y;
       element.style.left = base_x;
-
     }
 
   }
+
+
+  })
+
+
 
 }
 
@@ -235,6 +242,8 @@ async function build_dice() {
 function square_to_x(square, board_dim, board_length) {
  
   let x = board_length * ((square % board_dim) / board_dim);
+  console.log(square);
+  console.log(x);
   return x
   
 }
@@ -242,6 +251,8 @@ function square_to_x(square, board_dim, board_length) {
 function square_to_y(square, board_dim, board_length) {
  
   let y = board_length - (board_length * (Math.floor(square / board_dim) / board_dim));
+  console.log(square);
+  console.log(y);
   return y
   
 }
@@ -265,8 +276,8 @@ function get_dist_rect(current_value, dice_value, board_dim, board_length) {
 
 }
 
-async function delay_game(delay_period) {
-  await new Promise(resolve => setTimeout(resolve, delay_period));
+function delay_game(delay_period) {
+  new Promise(resolve => setTimeout(resolve, delay_period));
 }
 
 async function move_element(element, dist_rect) {
@@ -322,30 +333,42 @@ window.addEventListener("DOMContentLoaded", async function () {
       // draw a dice value and switch to next player
       let roll_value = await invoke('draw_turn').then((response) => response).catch((e) => console.error(e));
       let next_player = await invoke('switch_player').then((response) => response).catch((e) => console.error(e));
+      let player_position = await invoke('get_player_position').then((response) => response).catch((e) => console.error(e));
 
       // compute this player position and distination
       let player_element = document.getElementById(next_player.toString());
-      let player_position = board.players[next_player].position;
-      let distination_rect = get_dist_rect(player_position, roll_value, board_dim, board_length);
 
       console.log(player_element);
-      console.log("prepare for switch");
+      console.log(player_position);
+      console.log(roll_value);
+      let distination_rect = get_dist_rect(player_position, roll_value, board_dim, board_length);
 
       if (next_player === 0) {
+
           // if next is user : wait for roll button press, show value, make pawn draggable ..
           console.log("in 0");
-          document.querySelector("#roll_button").addEventListener("click", async function (e) {
-      
-            // show rolled value to user
-            document.querySelector("#roll_show").innerHTML = roll_value;
-    
-            // make pawn draggable so that the user can move it to distination
-            make_draggable(player_element, distination_rect);
           
-            // hide rolled value ? maybe move from here
-            document.querySelector("#roll_show").innerHTML = "";
+          let _ = await new Promise( (resolve, _reject) => {
 
-          });
+            document.querySelector("#roll_button").addEventListener("click", async function (e) {
+      
+              // show rolled value to user
+              document.querySelector("#roll_show").innerHTML = roll_value;
+      
+              // make pawn draggable so that the user can move it to distination
+              // this is also in promise, to wait until succesful movement
+              let _ = await make_draggable(player_element, distination_rect);
+            
+              // hide rolled value ? maybe move from here
+              document.querySelector("#roll_show").innerHTML = "";
+              
+              resolve("success");
+
+            });
+
+
+          } );
+
           console.log("finished 0");
 
       } else {
@@ -364,12 +387,13 @@ window.addEventListener("DOMContentLoaded", async function () {
           document.querySelector("#roll_show").innerHTML = "";
           console.log("finished 1");
 
-
       }
 
+      // update backend states for new position
+      await invoke('advance', {step_size: roll_value});
 
       // delay game before continuing
-      delay_game(delay_period);
+      let _ = await delay_game(delay_period);
 
       console.log("done iter");
       is_win = await invoke('is_win', {board_length: board_length}).then((response) => response ).catch((e) => console.error(e));

@@ -5,7 +5,7 @@
 fn main() {
     tauri::Builder::default()
         .manage(BoardState::default())
-        .invoke_handler(tauri::generate_handler![init_game, draw_turn])
+        .invoke_handler(tauri::generate_handler![init_game, draw_turn, switch_player, is_win, advance, get_player_position])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -33,6 +33,37 @@ fn draw_turn(board_state: State<'_, BoardState>) -> usize {
     let roll_value = board.dice.draw();
     roll_value
 }
+
+#[tauri::command(rename_all = "snake_case")]
+fn switch_player(board_state: State<'_, BoardState>) -> usize {
+
+    let mut board = board_state.0.lock().expect("could not lock board game");
+    board.switch();
+    board.next
+
+}
+
+#[tauri::command(rename_all = "snake_case")]
+fn is_win(board_state: State<'_, BoardState>, board_length: usize) -> bool {
+
+    let board = board_state.0.lock().expect("could not lock board game");
+    board.win(board_length)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+fn advance(board_state: State<'_, BoardState>, step_size: usize) {
+
+    let mut board = board_state.0.lock().expect("could not lock board game");
+    board.step(step_size);
+}
+
+#[tauri::command(rename_all = "snake_case")]
+fn get_player_position(board_state: State<'_, BoardState>) -> usize {
+
+    let board = board_state.0.lock().expect("could not lock board game");
+    board.players[board.next].position
+}
+
 
 /////////////
 
@@ -99,27 +130,23 @@ impl Default for Board {
 }
 
 trait GameActions {
-    fn step(&mut self);
-    fn win(&self) -> bool;
+    fn step(&mut self, value: usize);
+    fn win(&self, board_length: usize) -> bool;
     fn switch(&mut self);
-    fn play(&mut self);
 }
 
 impl GameActions for Board {
 
-    fn step(&mut self) {
-        todo!()
+    fn step(&mut self, value: usize) {
+        self.players[self.next].position += value; 
     }
 
-    fn win(&self) -> bool {
-        todo!()
+    fn win(&self, board_length: usize) -> bool {
+        self.players[self.next].position >= board_length
     }
 
     fn switch(&mut self) {
         self.next = 1 - self.next;
     }
 
-    fn play(&mut self) {
-        todo!()
-    }
 }
