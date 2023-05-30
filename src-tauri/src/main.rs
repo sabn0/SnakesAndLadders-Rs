@@ -44,10 +44,10 @@ fn switch_player(board_state: State<'_, BoardState>) -> usize {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn is_win(board_state: State<'_, BoardState>, board_length: usize) -> bool {
+fn is_win(board_state: State<'_, BoardState>, finish_line: usize) -> bool {
 
     let board = board_state.0.lock().expect("could not lock board game");
-    board.win(board_length)
+    board.win(finish_line)
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -108,7 +108,7 @@ trait Roll {
 
 impl Roll for Dice {
     fn draw(&self) -> usize {
-        rand::thread_rng().gen_range(1..=6)
+        rand::thread_rng().gen_range(1..=20)
     }
 }
 
@@ -140,7 +140,7 @@ trait GameActions {
 
     fn bust(&mut self);
     fn step(&mut self, value: usize);
-    fn win(&self, board_length: usize) -> bool;
+    fn win(&self, finish_line: usize) -> bool;
     fn switch(&mut self);
 }
 
@@ -166,8 +166,8 @@ impl GameActions for Board {
         self.players[self.next].position += value; 
     }
 
-    fn win(&self, board_length: usize) -> bool {
-        self.players[self.next].position >= board_length
+    fn win(&self, finish_line: usize) -> bool {
+        self.players[self.next].position >= finish_line
     }
 
     fn switch(&mut self) {
