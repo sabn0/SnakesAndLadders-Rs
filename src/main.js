@@ -280,13 +280,21 @@ async function move_element(element, dist_rect) {
 
   let dist_x = dist_rect.x + dist_rect.width / 2;
   let dist_y = dist_rect.y + dist_rect.height / 2;
-  let margin_x = dist_x - element.style.left;
-  let margin_y = dist_y - element.style.top;
+  let margin_x = dist_x - element.offsetLeft;
+  let margin_y = dist_y - element.offsetTop;
+  //let x_step = margin_x > 0 ? 1 : -1;
+  //let y_step = (margin_y/(x_step*margin_x));
+  let x_step = margin_x;
+  let y_step = margin_y/margin_x;
 
   var move = setInterval(function() {
-    
-    element.style.left = element.offsetLeft + 1 + 'px';
-    element.style.top += element.offsetTop + (margin_y/margin_x) + 'px';
+    if (x_step > 0) {
+      element.style.left = (element.offsetLeft + x_step) + 'px';
+      element.style.top = (element.offsetTop + y_step) + 'px';
+    } else {
+      element.style.left = (element.offsetLeft - x_step) + 'px';
+      element.style.top = (element.offsetTop - y_step) + 'px';
+    }
 
     let x_cond = x_bounds(element.offsetLeft, dist_rect.x, dist_rect.width);
     let y_cond = y_bounds(element.offsetTop, dist_rect.y, dist_rect.height);
@@ -296,8 +304,6 @@ async function move_element(element, dist_rect) {
     }
 
   }, 10);
-
-
 
 }
 
@@ -335,9 +341,9 @@ window.addEventListener("DOMContentLoaded", async function () {
       let player_element = document.getElementById(next_player.toString());
       console.log("start iter");
       console.log(next_player);
-      console.log(player_element);
       console.log(player_position);
       console.log(roll_value);
+
       let distination_rect = get_dist_rect(player_position, roll_value, board_dim, board_length);
 
       if (next_player === 0) {
