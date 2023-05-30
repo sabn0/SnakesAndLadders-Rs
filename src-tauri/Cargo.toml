@@ -1,6 +1,6 @@
 [package]
 name = "ladders-and-snakes"
-version = "0.0.0"
+version = "0.0.1"
 description = "Snakes and ladders with rust-tauri"
 authors = ["Sabn0"]
 edition = "2021"
