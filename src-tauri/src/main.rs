@@ -122,7 +122,7 @@ impl Default for Board {
         }).unzip();
 
         // generate two players
-        let players = (0..=1).into_iter().map(|i| Player {position: 1, player_id: i }).collect::<Vec<Player>>();
+        let players = (0..=1).into_iter().map(|i| Player {position: 0, player_id: i }).collect::<Vec<Player>>();
         let next = players.choose(&mut rand::thread_rng()).unwrap().player_id;
 
         Board { ladders: ladders, snakes: snakes, players: players, next: next, dice: Dice{} }
