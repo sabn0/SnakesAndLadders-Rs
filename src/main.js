@@ -294,32 +294,26 @@ function delay_game(delay_period) {
 
 function move_element(element, dist_rect) {
 
-  return new Promise ( (resolve, _reject) => {
+  let dist_x = dist_rect.x + dist_rect.width / 2;
+  let dist_y = dist_rect.y;
+  let margin_x = dist_x - parseFloat(element.style.left);
+  let margin_y = dist_y - parseFloat(element.style.top);
 
-    let dist_x = dist_rect.x + dist_rect.width / 2;
-    let dist_y = dist_rect.y;
-    let margin_x = dist_x - parseFloat(element.style.left);
-    let margin_y = dist_y - parseFloat(element.style.top);
-  
-    let x_step = margin_x > 0 ? 1 : -1;
-    let y_step = x_step*(margin_y/margin_x);
-    var move = setInterval(function() {
-  
-      element.style.left = `${parseFloat(element.style.left) + x_step}px`;
-      element.style.top = `${parseFloat(element.style.top) + y_step}px`;
-  
-      let x_cond = x_bounds(parseFloat(element.style.left), dist_rect.x, dist_rect.width);
-      let y_cond = y_bounds(parseFloat(element.style.top), dist_rect.y, dist_rect.height);
-  
-      if (x_cond && y_cond) {
-        clearInterval(move);
-      }
-  
-    }, 10);
+  let x_step = margin_x > 0 ? 1 : -1;
+  let y_step = x_step*(margin_y/margin_x);
+  var move = setInterval(function() {
 
-    resolve("success");
+    element.style.left = `${parseFloat(element.style.left) + x_step}px`;
+    element.style.top = `${parseFloat(element.style.top) + y_step}px`;
 
-  })
+    let x_cond = x_bounds(parseFloat(element.style.left), dist_rect.x, dist_rect.width);
+    let y_cond = y_bounds(parseFloat(element.style.top), dist_rect.y, dist_rect.height);
+
+    if (x_cond && y_cond) {
+      clearInterval(move);
+    }
+
+  }, 10);
 
 
 }
@@ -386,17 +380,12 @@ window.addEventListener("DOMContentLoaded", async function () {
           // else : move opponent pawn to distination
           // for the user to see, we want to show the rolled dice, wait, then move the pawn smoothly 
 
-          let _ = await new Promise( async (resolve, _reject) => {
+          // show rolled value to user
+          document.querySelector("#roll_comp").innerHTML = roll_value;
 
-            // show rolled value to user
-            document.querySelector("#roll_comp").innerHTML = roll_value;
+          // move smooth
+          move_element(player_element, distination_rect);
 
-            // move smooth
-            let _ = await move_element(player_element, distination_rect);
-
-            resolve("success");
-
-          });
 
 
       }
