@@ -225,18 +225,34 @@ async function build_dice() {
 
   let container = document.querySelector("#container");
   
+  // create a line for user interaction, something like
+  // user roll button --- label  ... turn ...  comp label
+
+  let roll_container = document.createElement("div");
+  roll_container.id = "dice_container";
+  roll_container.style.display = "flex";
+  roll_container.style.flexDirection = "row";
+  roll_container.style.columnGap = "100px";
+  container.appendChild(roll_container);
+
   let roll_button = document.createElement("button");
   roll_button.type = "button";
   roll_button.innerHTML = "Roll!";
   roll_button.id = "roll_button";
   roll_button.style.width = "100px";
-  container.appendChild(roll_button);
+  roll_container.appendChild(roll_button);
 
   let roll_show = document.createElement("label");
-  roll_show.textContent = "";
+  roll_show.innerHTML = "";
   roll_show.id = "roll_show";
-  container.appendChild(roll_show);
+  roll_container.appendChild(roll_show);
   
+  let roll_comp = document.createElement("label");
+  roll_comp.innerHTML = "";
+  roll_comp.id = "roll_comp";
+  roll_container.appendChild(roll_comp);
+  
+
 }
 
 function square_to_x(square, board_dim, board_length) {
@@ -276,28 +292,35 @@ function delay_game(delay_period) {
   new Promise(resolve => setTimeout(resolve, delay_period));
 }
 
-async function move_element(element, dist_rect) {
+function move_element(element, dist_rect) {
 
-  let dist_x = dist_rect.x + dist_rect.width / 2;
-  let dist_y = dist_rect.y;
-  let margin_x = dist_x - parseFloat(element.style.left);
-  let margin_y = dist_y - parseFloat(element.style.top);
+  return new Promise ( (resolve, _reject) => {
 
-  let x_step = margin_x > 0 ? 1 : -1;
-  let y_step = x_step*(margin_y/margin_x);
-  var move = setInterval(function() {
+    let dist_x = dist_rect.x + dist_rect.width / 2;
+    let dist_y = dist_rect.y;
+    let margin_x = dist_x - parseFloat(element.style.left);
+    let margin_y = dist_y - parseFloat(element.style.top);
+  
+    let x_step = margin_x > 0 ? 1 : -1;
+    let y_step = x_step*(margin_y/margin_x);
+    var move = setInterval(function() {
+  
+      element.style.left = `${parseFloat(element.style.left) + x_step}px`;
+      element.style.top = `${parseFloat(element.style.top) + y_step}px`;
+  
+      let x_cond = x_bounds(parseFloat(element.style.left), dist_rect.x, dist_rect.width);
+      let y_cond = y_bounds(parseFloat(element.style.top), dist_rect.y, dist_rect.height);
+  
+      if (x_cond && y_cond) {
+        clearInterval(move);
+      }
+  
+    }, 10);
 
-    element.style.left = `${parseFloat(element.style.left) + x_step}px`;
-    element.style.top = `${parseFloat(element.style.top) + y_step}px`;
+    resolve("success");
 
-    let x_cond = x_bounds(parseFloat(element.style.left), dist_rect.x, dist_rect.width);
-    let y_cond = y_bounds(parseFloat(element.style.top), dist_rect.y, dist_rect.height);
+  })
 
-    if (x_cond && y_cond) {
-      clearInterval(move);
-    }
-
-  }, 10);
 
 }
 
@@ -342,17 +365,14 @@ window.addEventListener("DOMContentLoaded", async function () {
           let _ = await new Promise( (resolve, _reject) => {
 
             document.querySelector("#roll_button").addEventListener("click", async function (e) {
-      
+
               // show rolled value to user
               document.querySelector("#roll_show").innerHTML = roll_value;
-      
+
               // make pawn draggable so that the user can move it to distination
               // this is also in promise, to wait until succesful movement
               let _ = await make_draggable(player_element, distination_rect);
-            
-              // hide rolled value ? maybe move from here
-              document.querySelector("#roll_show").innerHTML = "";
-              
+                  
               resolve("success");
 
             });
@@ -366,17 +386,17 @@ window.addEventListener("DOMContentLoaded", async function () {
           // else : move opponent pawn to distination
           // for the user to see, we want to show the rolled dice, wait, then move the pawn smoothly 
 
-          console.log(player_position);
-          console.log(roll_value);   
+          let _ = await new Promise( async (resolve, _reject) => {
 
-          // show rolled value to user
-          document.querySelector("#roll_show").innerHTML = roll_value;
+            // show rolled value to user
+            document.querySelector("#roll_comp").innerHTML = roll_value;
 
-          // move smooth
-          move_element(player_element, distination_rect);
+            // move smooth
+            let _ = await move_element(player_element, distination_rect);
 
-          // hide rolled value ? maybe move from here
-          document.querySelector("#roll_show").innerHTML = "";
+            resolve("success");
+
+          });
 
 
       }
