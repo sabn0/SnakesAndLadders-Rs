@@ -1,0 +1,12 @@
+{
+  "name": "ladders-and-snakes",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.3.1"
+  }
+}
