@@ -5,7 +5,7 @@
 fn main() {
     tauri::Builder::default()
         .manage(BoardState::default())
-        .invoke_handler(tauri::generate_handler![init_game, draw_turn, switch_player, is_win, advance, get_player_position])
+        .invoke_handler(tauri::generate_handler![init_game, draw_turn, switch_player, is_win, advance, get_player_position, slider_bust])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -64,6 +64,13 @@ fn get_player_position(board_state: State<'_, BoardState>) -> usize {
     board.players[board.next].position
 }
 
+#[tauri::command(rename_all = "snake_case")]
+fn slider_bust(board_state: State<'_, BoardState>) -> usize {
+
+    let mut board = board_state.0.lock().expect("could not lock board game");
+    board.bust();
+    board.players[board.next].position
+}
 
 /////////////
 
@@ -111,7 +118,7 @@ impl Default for Board {
     fn default() -> Self {
 
         let board_dim = 10;
-        let n = 2*2*3; // have 3 snakes and 3 letters
+        let n = 2*2*8; // have 3 snakes and 3 letters
 
         let sort_pair = |a: usize, b: usize| -> (usize, usize) { if a > b { (b, a) } else { (a, b) } };
 
@@ -130,12 +137,30 @@ impl Default for Board {
 }
 
 trait GameActions {
+
+    fn bust(&mut self);
     fn step(&mut self, value: usize);
     fn win(&self, board_length: usize) -> bool;
     fn switch(&mut self);
 }
 
 impl GameActions for Board {
+
+    fn bust(&mut self) {
+        
+        let current_position = self.players[self.next].position;
+        
+        // check for ladders bust and update
+        if let Some(index) = self.ladders.iter().position(|&x| x.0 == current_position) {
+            self.players[self.next].position = self.ladders[index].1;
+        }
+
+        // check for snakes fall and update
+        if let Some(index) = self.snakes.iter().position(|&x| x.1 == current_position) {
+            self.players[self.next].position = self.snakes[index].0;
+        }
+
+    }
 
     fn step(&mut self, value: usize) {
         self.players[self.next].position += value; 
