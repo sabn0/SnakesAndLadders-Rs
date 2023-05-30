@@ -29,8 +29,8 @@ async function build_board(board_dim, board_length) {
   document.querySelector("#container").appendChild(canvas);
 
   let ctx = canvas.getContext("2d");
-  ctx.canvas.width  = window.innerWidth;
-  ctx.canvas.height = window.innerHeight;
+  ctx.canvas.width  = board_length;
+  ctx.canvas.height = board_length;
   ctx.canvas.top_left_x = 0;
   ctx.canvas.top_left_y = 0;
   let square_length = board_length / board_dim;
@@ -279,25 +279,19 @@ function delay_game(delay_period) {
 async function move_element(element, dist_rect) {
 
   let dist_x = dist_rect.x + dist_rect.width / 2;
-  let dist_y = dist_rect.y + dist_rect.height / 2;
-  let margin_x = dist_x - element.offsetLeft;
-  let margin_y = dist_y - element.offsetTop;
-  //let x_step = margin_x > 0 ? 1 : -1;
-  //let y_step = (margin_y/(x_step*margin_x));
-  let x_step = margin_x;
-  let y_step = margin_y/margin_x;
+  let dist_y = dist_rect.y;
+  let margin_x = dist_x - parseFloat(element.style.left);
+  let margin_y = dist_y - parseFloat(element.style.top);
 
+  let x_step = margin_x > 0 ? 1 : -1;
+  let y_step = x_step*(margin_y/margin_x);
   var move = setInterval(function() {
-    if (x_step > 0) {
-      element.style.left = (element.offsetLeft + x_step) + 'px';
-      element.style.top = (element.offsetTop + y_step) + 'px';
-    } else {
-      element.style.left = (element.offsetLeft - x_step) + 'px';
-      element.style.top = (element.offsetTop - y_step) + 'px';
-    }
 
-    let x_cond = x_bounds(element.offsetLeft, dist_rect.x, dist_rect.width);
-    let y_cond = y_bounds(element.offsetTop, dist_rect.y, dist_rect.height);
+    element.style.left = `${parseFloat(element.style.left) + x_step}px`;
+    element.style.top = `${parseFloat(element.style.top) + y_step}px`;
+
+    let x_cond = x_bounds(parseFloat(element.style.left), dist_rect.x, dist_rect.width);
+    let y_cond = y_bounds(parseFloat(element.style.top), dist_rect.y, dist_rect.height);
 
     if (x_cond && y_cond) {
       clearInterval(move);
@@ -339,11 +333,6 @@ window.addEventListener("DOMContentLoaded", async function () {
 
       // compute this player position and distination
       let player_element = document.getElementById(next_player.toString());
-      console.log("start iter");
-      console.log(next_player);
-      console.log(player_position);
-      console.log(roll_value);
-
       let distination_rect = get_dist_rect(player_position, roll_value, board_dim, board_length);
 
       if (next_player === 0) {
@@ -376,6 +365,9 @@ window.addEventListener("DOMContentLoaded", async function () {
 
           // else : move opponent pawn to distination
           // for the user to see, we want to show the rolled dice, wait, then move the pawn smoothly 
+
+          console.log(player_position);
+          console.log(roll_value);   
 
           // show rolled value to user
           document.querySelector("#roll_show").innerHTML = roll_value;
