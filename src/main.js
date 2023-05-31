@@ -6,6 +6,7 @@ async function build_board(board_dim, board_length) {
 
   // leave us with empty screen
   document.querySelector("#start_screen").remove();
+  document.querySelector("#bg_logo").remove();
 
   // random colors
   let colors = Array(

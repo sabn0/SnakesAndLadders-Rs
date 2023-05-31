@@ -9,10 +9,17 @@
   </head>
   <body>
     <div id="container" class="container" style="position: relative;">
-      <div id="start_screen">
+      <img id="bg_logo" class="bg_logo" src="assets/background.png" />
+      <div id="start_screen" class="start_screen">
         <h1>Welcome to ladders and snakes !</h1>
-        <img id="logo" class="logo" src="assets/base.png" width="250" height="250" />
-        <button id="start_button" class="start_button">Start!</button>
+        <div id="tauri_line" class="tauri_line">
+          <h2>Desktop application with TAURI</h2>
+          <img id="tauri_logo" class="tauri_logo" src="assets/tauri_icon.png" />
+        </div>
+        <div id="game_line" class="game_line">
+          <img id="game_logo" class="game_logo" src="assets/base.png" />
+          <button id="start_button" class="start_button">Start!</button>
+        </div>     
       </div>
     </div>
   </body>
