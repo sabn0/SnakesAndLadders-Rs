@@ -118,7 +118,7 @@ impl Default for Board {
     fn default() -> Self {
 
         let board_dim = 10;
-        let n = 2*2*5; // have 5 snakes and 5 letters
+        let n = 2*2*4; // have 4 snakes and 4 letters
         let item_limit = (board_dim*board_dim) -1; // don't allow snake / ladder on last + first squares
 
         let sort_pair = |a: usize, b: usize| -> (usize, usize) { if a > b { (b, a) } else { (a, b) } };
