@@ -113,32 +113,42 @@ async function build_sliders(items, type, board_dim, board_length) {
 
 }
 
-async function build_players(n) {
+async function build_players(n, board_dim, board_length) {
   
   // make n players (typical n=2) 
-
-  let canvas = document.querySelector("#board_canvas");
   let container = document.querySelector("#container");
+  let square_length = board_length / board_dim;
+  let side_pad = [square_length/2, square_length/6];
+  let players = [];
 
   // receive number of players and build img objects
   for (var i = 0; i < n; i ++ ) {
     
-    // height position
-    let top = (canvas.height - 50).toString() + "px";
-    let left = (10 + (i * 2.5 * 10)).toString() + "px";
-
     let player_id = i;
     let asset = assets_path + "player" + player_id + ".png";
     
+    // position - top left corner of the 0 square
+    let top = `${board_length - square_length}px`;
+    let left = `${0}px`;
+
     let player = document.createElement('img');
     player.src = asset;
-    player.width = "20";
-    player.height = "20";
+    player.width = square_length / 3;
+    player.height = square_length / 3;
     player.style.position = "absolute";
     player.style.top = top;
     player.style.left = left;
+    player.style.border = "2px solid black";
+    player.style.padding = `${square_length / 3}px`;
+    player.style.paddingLeft = `${side_pad[i]}px`;
+    player.style.paddingRight = `${side_pad[1-i]}px`;
     player.id = player_id;
-    container.appendChild(player);
+    players.push(player);
+  }
+
+  // append to container in reverse order
+  for (var i= (n-1); i>=0; i--) {
+    container.appendChild(players[i]);
   }
 
 }
@@ -192,33 +202,41 @@ function make_draggable(element, dist_rect) {
     document.onmouseup = null;
     document.onmousemove = null;
 
-    //let x_cond = (dist_rect.x < e.pageX) && (e.pageX < dist_rect.x + dist_rect.width);
-    //let y_cond = (dist_rect.y < e.pageY) && (e.pageY < dist_rect.y + dist_rect.height);
     let x_bound_check = x_bounds(e.pageX, dist_rect.x, dist_rect.width);
     let y_bound_check = y_bounds(e.pageY, dist_rect.y, dist_rect.height);
 
     if (x_bound_check && y_bound_check) {
-      resolve("success");
+        resolve("success")
     } else {
       element.style.top = base_y;
       element.style.left = base_x;
+    
     }
 
   }
 
-
   })
 
-
-
 }
 
-function x_bounds(x, left_bound, width) {
-  return (left_bound < x) && (x < (left_bound + width))
+function x_bounds(x, left_bound, width = null) {
+  // null for automatic, width for manual (user)
+  if (width == null) {
+    let epsilon = 2;
+    return (((left_bound - epsilon) < x) && (x < (left_bound + epsilon)))
+  } else {
+    return ((left_bound < x) && (x < (left_bound + width)));
+  }
 }
 
-function y_bounds(y, top_bound, height) {
-  return (top_bound < y) && (y < (top_bound + height))
+function y_bounds(y, top_bound, height = null) {
+  // null for automatic, width for manual (user)
+  if (height == null) {
+    let epsilon = 2;
+    return (((top_bound - epsilon) < y) && (y < (top_bound + epsilon)))
+  } else {
+    return ((top_bound < y) && (y < (top_bound + height)));
+  }
 }
 
 async function build_dice() {
@@ -297,24 +315,32 @@ function delay_game(delay_period) {
 
 function move_element(element, dist_rect) {
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
+    
+    let margin_x = dist_rect.x - parseFloat(element.style.left);
+    let margin_y = dist_rect.y - parseFloat(element.style.top);
 
-    let dist_x = dist_rect.x + dist_rect.width / 2;
-    let dist_y = dist_rect.y;
-    let margin_x = dist_x - parseFloat(element.style.left);
-    let margin_y = dist_y - parseFloat(element.style.top);
-  
-    let x_step = margin_x > 0 ? 1 : -1;
-    let y_step = x_step*(margin_y/margin_x);
+    // the steps are defined by the larger margin for slow speed
+    let x_step;
+    let y_step;
+    if (Math.abs(margin_x) >= Math.abs(margin_y)) {
+      x_step = margin_x >= 0 ? 1 : -1;
+      y_step = x_step * (margin_y / margin_x);
+    } else {
+      y_step = margin_y >= 0 ? 1 : -1;
+      x_step = y_step * (margin_x / margin_y);
+    }
+
     var move = setInterval(function() {
   
       element.style.left = `${parseFloat(element.style.left) + x_step}px`;
       element.style.top = `${parseFloat(element.style.top) + y_step}px`;
   
-      let x_cond = x_bounds(parseFloat(element.style.left), dist_rect.x, dist_rect.width);
-      let y_cond = y_bounds(parseFloat(element.style.top), dist_rect.y, dist_rect.height);
-  
+      let x_cond = x_bounds(parseFloat(element.style.left), dist_rect.x, null);
+      let y_cond = y_bounds(parseFloat(element.style.top), dist_rect.y, null);
+      
       if (x_cond && y_cond) {
+
         clearInterval(move);
         resolve("success");
       }
@@ -369,6 +395,7 @@ window.addEventListener("DOMContentLoaded", async function () {
 
   container = document.querySelector("#container");
   let board_dim = 10;
+  let finish_line = -1+ (board_dim* board_dim);
   let board_length = 600;
   let n_players = 2;
   let delay_period = 3000;
@@ -384,11 +411,11 @@ window.addEventListener("DOMContentLoaded", async function () {
     build_sliders(board.ladders, "ladders", board_dim, board_length);
     build_sliders(board.snakes, "snakes", board_dim, board_length);
     build_dice();
-    build_players(n_players);
+    build_players(n_players, board_dim, board_length);
 
     // play a turn while game doesn't end
     let next_player;
-    let is_win = await invoke('is_win', {finish_line: board_dim*board_dim}).then((response) => response ).catch((e) => console.error(e));
+    let is_win = await invoke('is_win', {finish_line: finish_line}).then((response) => response ).catch((e) => console.error(e));
     do {
       
       // draw a dice value and switch to next player
@@ -422,9 +449,7 @@ window.addEventListener("DOMContentLoaded", async function () {
 
             });
 
-
-          } );
-
+          });
 
       } else {
 
@@ -447,8 +472,8 @@ window.addEventListener("DOMContentLoaded", async function () {
       // delay game before continuing
       await delay_game(delay_period);
 
-      is_win = await invoke('is_win', {finish_line: board_dim*board_dim}).then((response) => response ).catch((e) => console.error(e));
-      console.log(is_win);
+      is_win = await invoke('is_win', {finish_line: finish_line}).then((response) => response ).catch((e) => console.error(e));
+
     }
     while ( !is_win );
 
