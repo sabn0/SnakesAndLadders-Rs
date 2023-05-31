@@ -118,12 +118,13 @@ impl Default for Board {
     fn default() -> Self {
 
         let board_dim = 10;
-        let n = 2*2*3; // have 3 snakes and 3 letters
+        let n = 2*2*5; // have 5 snakes and 5 letters
+        let item_limit = (board_dim*board_dim) -1; // don't allow snake / ladder on last + first squares
 
         let sort_pair = |a: usize, b: usize| -> (usize, usize) { if a > b { (b, a) } else { (a, b) } };
 
         // sample ladders and snakes positions from 1..board_dim**2
-        let positions = (1..board_dim*board_dim).choose_multiple(&mut rand::thread_rng(), n);
+        let positions = (1..item_limit).choose_multiple(&mut rand::thread_rng(), n);
         let (ladders, snakes): (Vec<(usize, usize)>, Vec<(usize, usize)>) = positions.chunks(2*2).map(|quad| {
             (sort_pair(quad[0], quad[1]), sort_pair(quad[2], quad[3]))
         }).unzip();
