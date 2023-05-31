@@ -118,7 +118,7 @@ async function build_players(n, board_dim, board_length) {
   // make n players (typical n=2) 
   let container = document.querySelector("#container");
   let square_length = board_length / board_dim;
-  let side_pad = [square_length/2, square_length/6];
+  let side_pad = [square_length/8, 3*square_length/8];
   let players = [];
 
   // receive number of players and build img objects
@@ -133,13 +133,13 @@ async function build_players(n, board_dim, board_length) {
 
     let player = document.createElement('img');
     player.src = asset;
-    player.width = square_length / 3;
-    player.height = square_length / 3;
+    player.width = square_length / 2;
+    player.height = square_length / 2;
     player.style.position = "absolute";
     player.style.top = top;
     player.style.left = left;
     //player.style.border = "2px solid black"; // for debug
-    player.style.padding = `${square_length / 3}px`;
+    player.style.padding = `${square_length / 4}px`;
     player.style.paddingLeft = `${side_pad[i]}px`;
     player.style.paddingRight = `${side_pad[1-i]}px`;
     player.id = player_id;
