@@ -138,7 +138,7 @@ async function build_players(n, board_dim, board_length) {
     player.style.position = "absolute";
     player.style.top = top;
     player.style.left = left;
-    player.style.border = "2px solid black";
+    //player.style.border = "2px solid black"; // for debug
     player.style.padding = `${square_length / 3}px`;
     player.style.paddingLeft = `${side_pad[i]}px`;
     player.style.paddingRight = `${side_pad[1-i]}px`;
