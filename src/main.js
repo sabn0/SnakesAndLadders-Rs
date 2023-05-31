@@ -154,6 +154,73 @@ async function build_players(n, board_dim, board_length) {
 
 }
 
+async function build_dice_area() {
+
+  let container = document.querySelector("#container");
+  
+  // create a line for user interaction, something like
+  // user roll button --- label  ... turn ...  comp label
+
+  let roll_container = document.createElement("div");
+  roll_container.id = "dice_container";
+  roll_container.style.border = "2px solid black";
+  roll_container.style.margin = "1px";
+  roll_container.style.display = "inline-flex";
+  roll_container.style.textAlign = "center";
+  roll_container.style.justifyContent = "center";
+  container.appendChild(roll_container);
+
+  let roll_button = document.createElement("button");
+  roll_button.type = "button";
+  roll_button.innerHTML = "Roll!";
+  roll_button.id = "roll_button";
+  roll_button.style.float = "left";
+  roll_button.style.width = "20%";
+  roll_button.style.padding = "5px";
+  roll_container.appendChild(roll_button);
+
+  let roll_show = document.createElement("label");
+  roll_show.innerHTML = "Diced: -";
+  roll_show.id = "roll_show";
+  roll_show.style.float = "left";
+  roll_show.style.width = "20%";
+  roll_show.style.padding = "5px";
+  roll_show.style.backgroundColor = "rgb(52, 101, 164)";
+  roll_show.style.margin = "auto 5px";
+  roll_container.appendChild(roll_show);
+  
+  let turn_arrow = document.createElement("label");
+  turn_arrow.innerHTML = "&larr;";
+  turn_arrow.id = "turn_arrow";
+  turn_arrow.style.fontSize = "30px";
+  turn_arrow.style.float = "left";
+  turn_arrow.style.width = "10%";
+  turn_arrow.style.padding = "5px";
+  turn_arrow.style.margin = "auto 5px";
+  roll_container.appendChild(turn_arrow);
+
+  let comp_show = document.createElement("label");
+  comp_show.innerHTML = "Diced: -";
+  comp_show.id = "comp_show";
+  comp_show.style.float = "left";
+  comp_show.style.width = "20%";
+  comp_show.style.padding = "5px";
+  comp_show.style.margin = "auto 5px";
+  comp_show.style.backgroundColor = "rgb(21, 132, 102)";
+  roll_container.appendChild(comp_show);
+  
+  let comp_button = document.createElement("label");
+  comp_button.innerHTML = "Opponent";
+  comp_button.id = "comp_button";
+  comp_button.style.float = "left";
+  comp_button.style.width = "20%";
+  comp_button.style.margin = "auto 5px";
+  comp_button.style.padding = "5px";
+  roll_container.appendChild(comp_button);
+
+}
+
+
 function make_draggable(element, dist_rect) {
 
   return new Promise ( (resolve, _reject) => {
@@ -220,6 +287,24 @@ function make_draggable(element, dist_rect) {
 
 }
 
+function flip_arrow(next_player) {
+  if (next_player === 0) {
+    document.querySelector("#turn_arrow").innerHTML = '&larr;';
+  } else {
+    document.querySelector("#turn_arrow").innerHTML = '&rarr;';
+  }
+}
+
+function update_roll(next_player, roll_value) {
+
+  if (next_player === 0) {
+    document.querySelector("#roll_show").innerHTML = `Diced: ${roll_value}`;
+  } else {
+    document.querySelector("#comp_show").innerHTML = `Diced: ${roll_value}`;
+  }
+
+}
+
 function x_bounds(x, left_bound, width = null) {
   // null for automatic, width for manual (user)
   if (width == null) {
@@ -238,40 +323,6 @@ function y_bounds(y, top_bound, height = null) {
   } else {
     return ((top_bound < y) && (y < (top_bound + height)));
   }
-}
-
-async function build_dice() {
-
-  let container = document.querySelector("#container");
-  
-  // create a line for user interaction, something like
-  // user roll button --- label  ... turn ...  comp label
-
-  let roll_container = document.createElement("div");
-  roll_container.id = "dice_container";
-  roll_container.style.display = "flex";
-  roll_container.style.flexDirection = "row";
-  roll_container.style.columnGap = "100px";
-  container.appendChild(roll_container);
-
-  let roll_button = document.createElement("button");
-  roll_button.type = "button";
-  roll_button.innerHTML = "Roll!";
-  roll_button.id = "roll_button";
-  roll_button.style.width = "100px";
-  roll_container.appendChild(roll_button);
-
-  let roll_show = document.createElement("label");
-  roll_show.innerHTML = "";
-  roll_show.id = "roll_show";
-  roll_container.appendChild(roll_show);
-  
-  let roll_comp = document.createElement("label");
-  roll_comp.innerHTML = "";
-  roll_comp.id = "roll_comp";
-  roll_container.appendChild(roll_comp);
-  
-
 }
 
 function square_to_x(square, board_dim, board_length) {
@@ -378,10 +429,13 @@ function end_game(winning_player) {
   while (container.firstChild) {
     container.removeChild(container.lastChild);
   }
+  container.style.textAlign = "center";
 
   let message = document.createElement("label");
   message.innerHTML = "";
   message.id = "end_msg";
+  message.style.fontSize = "50px";
+  message.style.margin = "150px";
   container.appendChild(message);
 
   if (winning_player === 0) {
@@ -411,7 +465,7 @@ window.addEventListener("DOMContentLoaded", async function () {
     await build_board(board_dim, board_length);
     build_sliders(board.ladders, "ladders", board_dim, board_length);
     build_sliders(board.snakes, "snakes", board_dim, board_length);
-    build_dice();
+    build_dice_area();
     build_players(n_players, board_dim, board_length);
 
     // play a turn while game doesn't end
@@ -425,6 +479,7 @@ window.addEventListener("DOMContentLoaded", async function () {
       let player_position = await invoke('get_player_position').then((response) => response).catch((e) => console.error(e));
 
       // compute this player position and distination
+      flip_arrow(next_player);
       let player_element = document.getElementById(next_player.toString());
       let distination_rect = get_dist_rect(player_position, roll_value, board_dim, board_length);
 
@@ -440,7 +495,7 @@ window.addEventListener("DOMContentLoaded", async function () {
             document.querySelector("#roll_button").addEventListener("click", async function (e) {
 
               // show rolled value to user
-              document.querySelector("#roll_show").innerHTML = roll_value;
+              update_roll(next_player, roll_value);
 
               // make pawn draggable so that the user can move it to distination
               // this is also in promise, to wait until succesful movement
@@ -458,7 +513,7 @@ window.addEventListener("DOMContentLoaded", async function () {
           // We want to show the rolled dice, wait, then move the pawn smoothly 
 
           // show rolled value to user
-          document.querySelector("#roll_comp").innerHTML = roll_value;
+          update_roll(next_player, roll_value);
 
           // move smooth
           await move_element(player_element, distination_rect);
