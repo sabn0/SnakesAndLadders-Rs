@@ -156,7 +156,7 @@ async function build_players(n, board_dim, board_length) {
 
 }
 
-async function build_dice_area() {
+async function show_dice_area() {
 
   // change the dice containr from not visible to inline flex
   let dice_container = document.querySelector("#dice_container");
@@ -233,19 +233,32 @@ function make_draggable(element, dist_rect) {
 
 function flip_arrow(next_player) {
   if (next_player === 0) {
-    document.querySelector("#turn_arrow").innerHTML = '&larr;';
+    document.querySelector("#left_arrow").innerHTML = '&larr;';
+    document.querySelector("#right_arrow").innerHTML = '';
   } else {
-    document.querySelector("#turn_arrow").innerHTML = '&rarr;';
+    document.querySelector("#right_arrow").innerHTML = '&rarr;';
+    document.querySelector("#left_arrow").innerHTML = '';
   }
 }
 
-function update_roll(next_player, roll_value) {
+function update_roll(roll_value) {
+  console.log(roll_value);
+  return new Promise ( (resolve, _reject) => {
 
-  if (next_player === 0) {
-    document.querySelector("#roll_show").innerHTML = `Diced: ${roll_value}`;
-  } else {
-    document.querySelector("#comp_show").innerHTML = `Diced: ${roll_value}`;
-  }
+    function roll() {
+      for (var i = 1; i <= 6; i++) {
+        document.querySelector("#dice").classList.remove(`display_${i}`);
+        if (i === roll_value) {
+          document.querySelector("#dice").classList.add(`display_${roll_value}`);
+        }
+      }
+      
+    }
+
+    setTimeout(roll(), 2000);
+    setTimeout(resolve, 2000);
+
+  });
 
 }
 
@@ -306,7 +319,9 @@ function get_dist_rect(current_value, dice_value, board_dim, board_length) {
 }
 
 function delay_game(delay_period) {
-  new Promise(resolve => setTimeout(resolve, delay_period));
+  return new Promise((resolve, _reject) => {
+    setTimeout(resolve, delay_period);
+  })
 }
 
 function move_element(element, dist_rect) {
@@ -397,7 +412,7 @@ window.addEventListener("DOMContentLoaded", async function () {
   let finish_line = -1+ (board_dim* board_dim);
   let board_length = 600;
   let n_players = 2;
-  let delay_period = 3000;
+  let delay_period = 500;
 
   document.querySelector("#start_button").addEventListener("click", async function (e) {
 
@@ -409,7 +424,7 @@ window.addEventListener("DOMContentLoaded", async function () {
     await build_board(board_dim, board_length);
     build_sliders(board.ladders, "ladders", board_dim, board_length);
     build_sliders(board.snakes, "snakes", board_dim, board_length);
-    build_dice_area();
+    show_dice_area();
     build_players(n_players, board_dim, board_length);
 
     // play a turn while game doesn't end
@@ -439,7 +454,7 @@ window.addEventListener("DOMContentLoaded", async function () {
             document.querySelector("#roll_button").addEventListener("click", async function (e) {
 
               // show rolled value to user
-              update_roll(next_player, roll_value);
+              await update_roll(roll_value);
 
               // make pawn draggable so that the user can move it to distination
               // this is also in promise, to wait until succesful movement
@@ -456,11 +471,13 @@ window.addEventListener("DOMContentLoaded", async function () {
           // else : move opponent pawn to distination
           // We want to show the rolled dice, wait, then move the pawn smoothly 
 
+
           // show rolled value to user
-          update_roll(next_player, roll_value);
+          await update_roll(roll_value);
 
           // move smooth
           await move_element(player_element, distination_rect);
+
 
       }
 
@@ -479,7 +496,7 @@ window.addEventListener("DOMContentLoaded", async function () {
 
     
     // print win / lose message on screen
-    await delay_game(1000);
+    await delay_game(delay_period);
     end_game(next_player);
 
   });

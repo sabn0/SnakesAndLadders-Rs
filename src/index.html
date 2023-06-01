@@ -23,11 +23,46 @@
       </div>
       <!--The game menu part, hidden before start -->
       <div id="dice_container" class="dice_container">
-        <button id="roll_button">Roll!</button>
-        <label id="roll_show">Diced: -</label>
-        <label id="turn_arrow"></label>
-        <label id="comp_show">Diced: -</label>
-        <label id="comp_button">Opponent</label>
+        <button id="roll_button" class="col">Roll!</button>
+        <label id="left_arrow" class="col"></label>
+        <!--Creation of dynamic dice -->
+        <div id="dice" class="dice col">
+          <div id="side_1" class="side">
+            <span id="side1_dot1" class="dot"></span>
+          </div>
+          <div id="side_2" class="side">
+            <span id="side2_dot1" class="dot"></span>
+            <span id="side2_dot2" class="dot"></span>
+          </div>
+          <div id="side_3" class="side">
+            <span id="side3_dot1" class="dot"></span>
+            <span id="side3_dot2" class="dot"></span>
+            <span id="side3_dot3" class="dot"></span>
+          </div>
+          <div id="side_4" class="side">
+            <span id="side4_dot1" class="dot"></span>
+            <span id="side4_dot2" class="dot"></span>
+            <span id="side4_dot3" class="dot"></span>
+            <span id="side4_dot4" class="dot"></span>
+          </div>
+          <div id="side_5" class="side">
+            <span id="side5_dot1" class="dot"></span>
+            <span id="side5_dot2" class="dot"></span>
+            <span id="side5_dot3" class="dot"></span>
+            <span id="side5_dot4" class="dot"></span>
+            <span id="side5_dot5" class="dot"></span>
+          </div>
+          <div id="side_6" class="side">
+            <span id="side6_dot1" class="dot"></span>
+            <span id="side6_dot2" class="dot"></span>
+            <span id="side6_dot3" class="dot"></span>
+            <span id="side6_dot4" class="dot"></span>
+            <span id="side6_dot5" class="dot"></span>
+            <span id="side6_dot6" class="dot"></span>
+          </div>
+        </div>
+        <label id="right_arrow" class="col"></label>
+        <label id="comp_button" class="col">Opponent</label>
       </div>
     </div>
   </body>
