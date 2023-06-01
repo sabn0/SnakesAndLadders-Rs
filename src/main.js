@@ -158,68 +158,10 @@ async function build_players(n, board_dim, board_length) {
 
 async function build_dice_area() {
 
-  let container = document.querySelector("#container");
-  
-  // create a line for user interaction, something like
-  // user roll button --- label  ... turn ...  comp label
-
-  let roll_container = document.createElement("div");
-  roll_container.id = "dice_container";
-  roll_container.style.border = "2px solid black";
-  roll_container.style.margin = "1px";
-  roll_container.style.display = "inline-flex";
-  roll_container.style.textAlign = "center";
-  roll_container.style.justifyContent = "center";
-  container.appendChild(roll_container);
-
-  let roll_button = document.createElement("button");
-  roll_button.type = "button";
-  roll_button.innerHTML = "Roll!";
-  roll_button.id = "roll_button";
-  roll_button.style.float = "left";
-  roll_button.style.width = "20%";
-  roll_button.style.padding = "5px";
-  roll_container.appendChild(roll_button);
-
-  let roll_show = document.createElement("label");
-  roll_show.innerHTML = "Diced: -";
-  roll_show.id = "roll_show";
-  roll_show.style.float = "left";
-  roll_show.style.width = "20%";
-  roll_show.style.padding = "5px";
-  roll_show.style.backgroundColor = "rgb(52, 101, 164)";
-  roll_show.style.margin = "auto 5px";
-  roll_container.appendChild(roll_show);
-  
-  let turn_arrow = document.createElement("label");
-  turn_arrow.innerHTML = "&larr;";
-  turn_arrow.id = "turn_arrow";
-  turn_arrow.style.fontSize = "30px";
-  turn_arrow.style.float = "left";
-  turn_arrow.style.width = "10%";
-  turn_arrow.style.padding = "5px";
-  turn_arrow.style.margin = "auto 5px";
-  roll_container.appendChild(turn_arrow);
-
-  let comp_show = document.createElement("label");
-  comp_show.innerHTML = "Diced: -";
-  comp_show.id = "comp_show";
-  comp_show.style.float = "left";
-  comp_show.style.width = "20%";
-  comp_show.style.padding = "5px";
-  comp_show.style.margin = "auto 5px";
-  comp_show.style.backgroundColor = "rgb(21, 132, 102)";
-  roll_container.appendChild(comp_show);
-  
-  let comp_button = document.createElement("label");
-  comp_button.innerHTML = "Opponent";
-  comp_button.id = "comp_button";
-  comp_button.style.float = "left";
-  comp_button.style.width = "20%";
-  comp_button.style.margin = "auto 5px";
-  comp_button.style.padding = "5px";
-  roll_container.appendChild(comp_button);
-
+  // change the dice containr from not visible to inline flex
+  let dice_container = document.querySelector("#dice_container");
+  dice_container.style.display = "inline-flex";
+  document.querySelector("#container").appendChild(dice_container);
 }
 
 
