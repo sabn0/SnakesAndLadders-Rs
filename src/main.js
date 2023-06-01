@@ -1,4 +1,6 @@
 
+// trying to generate real dice
+
 const { invoke } = window.__TAURI__.tauri;
 const assets_path = "assets/";
 
