@@ -203,9 +203,13 @@ function flip_arrow(next_player) {
   if (next_player === 0) {
     document.querySelector("#left").style.color = "black";
     document.querySelector("#right").style.color = "white";
+    document.querySelector("#roll_button").disabled = false;
+    document.querySelector("#comp_button").disabled = true;
   } else {
     document.querySelector("#right").style.color = "black";
     document.querySelector("#left").style.color = "white";
+    document.querySelector("#comp_button").disabled = false;
+    document.querySelector("#roll_button").disabled = true;
   }
 }
 

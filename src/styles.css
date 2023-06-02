@@ -61,7 +61,7 @@ html, body {
   padding: 50px;
 }
 
-.btn {
+.btn, .dice_btn {
   border-radius: 10px;
   background-color: gray;
   font-weight: bold;
@@ -70,9 +70,9 @@ html, body {
   height: 40px;
 }
 
-.btn:hover {background-color: lightgray}
+.btn:hover:enabled {font-style: italic}
 
-.btn:active {
+.btn:active:enabled {
   background-color: lightgray;
   box-shadow: 0 5px #666;
   transform: translateY(2px);
@@ -263,15 +263,19 @@ h2 {
 
 #comp_button {
   background-color: rgb(21, 132, 102);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  pointer-events: none;
 }
-
-#roll_button:hover {background-color: lightgray}
 
 #roll_button {
   background-color: rgb(52, 101, 164);
+}
+
+#roll_button:hover:enabled {font-style: italic}
+
+#roll_button:disabled, #comp_button:disabled {
+  border: 1px solid #999999;
+  background-color: #cccccc;
+  color: #666666;
 }
 
 /* end of interaction styles */
