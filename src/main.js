@@ -292,6 +292,7 @@ function delay_game(delay_period) {
   })
 }
 
+// moves an element from current position to distination (automatic for the rival part)
 function move_element(element, dist_rect) {
 
   return new Promise((resolve, _reject) => {
@@ -319,22 +320,17 @@ function move_element(element, dist_rect) {
       let y_cond = y_bounds(parseFloat(element.style.top), dist_rect.y, null);
       
       if (x_cond && y_cond) {
-
         clearInterval(move);
         resolve("success");
       }
-  
     }, 10);
-  
   })
-
-
-
 }
 
+// moves the element to distination after busting by sliders
+// the bust happens if the desired new position (given from backend) is different from the current position  
 async function bust_on_item(element, current_position, new_position, board_dim, board_length) {
 
-  // check if position updated by backend, if so slide it to new location
   if (current_position === new_position) {
     return
   }
@@ -348,9 +344,10 @@ async function bust_on_item(element, current_position, new_position, board_dim, 
 
 }
 
+// creates the end game screen, remove some earlier elements and creates simple message over backgroud
 function end_game(winning_player) {
 
-  // remove all content in container div
+  // remove all content in container div but the background logo
   let container = document.querySelector("#container");
   document.querySelector("#bg_logo").style.display = "inline";
   while (container.lastChild.id != "bg_logo") {
@@ -375,10 +372,11 @@ function end_game(winning_player) {
 
 }
 
+// the functionality of the frontend is loaded here
 window.addEventListener("DOMContentLoaded", async function () {
 
   container = document.querySelector("#container");
-
+  // functionality is trigered by the user press of the first screen
   document.querySelector("#start_button").addEventListener("click", async function (e) {
 
     // retrive serialized board from backend
@@ -390,7 +388,7 @@ window.addEventListener("DOMContentLoaded", async function () {
     let snakes = board.snakes;
     let ladders = board.ladders;
 
-    // build initial screen (board, snakes, ladders, draggable players, dice, etc)
+    // build initial screen (board, snakes, ladders, draggable players, dice ...)
     e.preventDefault();
     await build_board(board_dim, board_length);
     build_sliders(ladders, "ladders", board_dim, board_length);
@@ -403,13 +401,13 @@ window.addEventListener("DOMContentLoaded", async function () {
     let is_win;
     do {
       
-      // draw a dice value and switch to next player
+      // draw a dice value, switch to next player and get its current position
       let roll_value = await invoke('draw_turn').then((response) => response).catch((e) => console.error(e));
       next_player = await invoke('switch_player').then((response) => response).catch((e) => console.error(e));
       let player_position = await invoke('get_player_position').then((response) => response).catch((e) => console.error(e));
-
-      // compute this player position and distination
       flip_arrow(next_player);
+
+      // compute this player distination x y on the board
       let player_element = document.getElementById(next_player.toString());
       let distination_rect = get_dist_rect(player_position, roll_value, board_dim, board_length);
 
@@ -417,58 +415,40 @@ window.addEventListener("DOMContentLoaded", async function () {
       await invoke('advance', {step_size: roll_value}).then().catch((e) => console.error(e));
 
       if (next_player === 0) {
-
-          // if next is user : wait for roll button press, show value, make pawn draggable ..
-          
+          // if next is user : wait for roll button press, show the rolled value, make the pawn draggable and wait for drag
           await new Promise( (resolve, _reject) => {
 
             document.querySelector("#roll_button").addEventListener("click", async function (e) {
 
-              // show rolled value to user
               await change_roll(roll_value);
-
               // make pawn draggable so that the user can move it to distination
               // this is also in promise, to wait until succesful movement
               await make_draggable(player_element, distination_rect);
-
               resolve("success");
 
             }, {once: true});
-
           });
-
       } else {
-
           // else : move opponent pawn to distination
           // We want to show the rolled dice, wait, then move the pawn smoothly 
 
-          // show rolled value to user
           await change_roll(roll_value);
-
-          // move smooth
+          // move smooth, wait till it is ended
           await move_element(player_element, distination_rect);
-
-
       }
 
       // backend check for position bust with snakes / ladders and update
-      // backend sends back the new position. If it is the same as it was, not bust
+      // backend sends back the new position. If it is the same as it was, we won't bust
       let new_position = await invoke('slider_bust').then((response) => response ).catch((e) => console.error(e));
       await bust_on_item(player_element, player_position + roll_value, new_position, board_dim, board_length);
 
-      // delay game for 0.5 second before continuing
-      await delay_game(500);
-
-      is_win = await invoke('is_win').then((response) => response ).catch((e) => console.error(e));
-
+      await delay_game(500); // delay game for 0.5 second before continuing
+      is_win = await invoke('is_win').then((response) => response ).catch((e) => console.error(e)); // break condition
     }
     while ( !is_win );
 
-    
     // print win / lose message on screen
     await delay_game(250);
     end_game(next_player);
-
   });
-
 });
