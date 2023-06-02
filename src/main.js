@@ -1,37 +1,23 @@
 
-// trying to generate real dice
-
 const { invoke } = window.__TAURI__.tauri;
 const assets_path = "assets/";
 
+// creates the n*n board by drawing the squares on a canvas 
 async function build_board(board_dim, board_length) {
 
-  // leave us with empty screen
-  document.querySelector("#start_screen").remove();
-  // document.querySelector("#bg_logo").remove();
-  document.querySelector("#bg_logo").style.display = "none";
+  document.querySelector("#start_screen").remove();   // remove the entry screen unneeded objects
+  document.querySelector("#bg_logo").style.display = "none"; // not removed, saved for ending bg
 
-  // random colors
-  let colors = Array(
-    "BurlyWood", 
-    "Chocolate", 
-    "Wheat", 
-    "Coral", 
-    "DarkGoldenRod", 
-    "DarkOrange", 
-    "Gold", 
-    "GoldenRod", 
-    "Orange", 
-    "OrangeRed", 
-    "Yellow"
-  );
+  // random colors for the squares, desert style
+  let colors = Array("BurlyWood", "Chocolate", "Wheat", "Coral", "DarkGoldenRod", "DarkOrange", "Gold", "GoldenRod", "Orange", "OrangeRed", "Yellow");
 
-  // create a colored square for every position on the board
+  // creates a new canvas and append to container
   let canvas = document.createElement("canvas");
   canvas.id = "board_canvas";
   canvas.setAttribute("class", "board_canvas");
   document.querySelector("#container").appendChild(canvas);
 
+  // set the canvas location and dimenstion
   let ctx = canvas.getContext("2d");
   ctx.canvas.width  = board_length;
   ctx.canvas.height = board_length;
@@ -39,6 +25,7 @@ async function build_board(board_dim, board_length) {
   ctx.canvas.top_left_y = 0;
   let square_length = board_length / board_dim;
 
+  // create a colored square for every position on the board
   for (var i = 0; i < board_dim; i++) {
       for (var j = 0; j < board_dim; j++) {
         
@@ -54,20 +41,16 @@ async function build_board(board_dim, board_length) {
         ctx.font = "15px Arial";
         ctx.fillStyle = "black";
         ctx.fillText(label.toString(), add_to_pos + i*square_length, add_to_pos + j*square_length); 
-
       }
   }
-
 }
 
+// creates snakes / ladders by drawing them on the canvas, according to entry and ending points
+// items is an array of shape [[start, end], [start, end], ...] , type is a string.
 async function build_sliders(items, type, board_dim, board_length) {
-
-  // receive an array of ladders or snakes of shape [[start, end], [start, end], ...]
-  // draw the items on the array 
 
   let square_length = board_length / board_dim;
   let canvas = document.querySelector("#board_canvas");
-  let asset = assets_path + type + ".png";
   let ctx = canvas.getContext("2d");
 
   for (var i = 0; i < items.length; i++) {
@@ -75,7 +58,7 @@ async function build_sliders(items, type, board_dim, board_length) {
     let start = items[i][0];
     let end = items[i][1];
 
-    // top left x y computation
+    // item data : top left x y computation
     let y_end = board_length - (board_length * (Math.floor(end / board_dim) / board_dim)) - (square_length / 2);
     let x_end = board_length * ((end % board_dim) / board_dim) + (square_length / 2);
     let y_start = board_length - (board_length * (Math.floor(start / board_dim) / board_dim)) - (square_length / 2);
@@ -85,7 +68,7 @@ async function build_sliders(items, type, board_dim, board_length) {
     let bottom_right_x = Math.max(x_start, x_end);
     let bottom_right_y = Math.max(y_start, y_end);
 
-    // rotation computation
+    // item data : rotation computation
     let adjacent = bottom_right_y - top_left_y;
     let opposite = bottom_right_x - top_left_x; 
     let hypotenuse = Math.sqrt(adjacent*adjacent + opposite*opposite);
@@ -96,13 +79,13 @@ async function build_sliders(items, type, board_dim, board_length) {
     }
     let rotation = (angle_degress * Math.PI) / 180;
 
-    // width and height computations
+    // item data : width and height computations
     let height = hypotenuse;
     let width = square_length / 2;
 
+    // draw the image once it is loaded
     var img = new Image();
-    img.src = asset;
-
+    img.src = assets_path + type + ".png";
     img.onload = function () {
 
       ctx.save();
@@ -110,22 +93,18 @@ async function build_sliders(items, type, board_dim, board_length) {
       ctx.rotate( rotation );
       ctx.drawImage(img, 0, 0, width, height);
       ctx.restore();
-
     };
-
   }
-
 }
 
+// creates n players (typical 2) elements and appends to container
 async function build_players(n, board_dim, board_length) {
   
-  // make n players (typical n=2) 
   let container = document.querySelector("#container");
   let square_length = board_length / board_dim;
   let side_pad = [square_length/8, 3*square_length/8];
   let players = [];
 
-  // receive number of players and build img objects
   for (var i = 0; i < n; i ++ ) {
     
     let player = document.createElement('img');
@@ -154,81 +133,72 @@ async function build_players(n, board_dim, board_length) {
 
 }
 
+// makes the dice area visible once game is activated by user
 async function show_dice_area() {
 
-  // change the dice containr from not visible to ...
   let dice_container = document.querySelector("#dice_container");
   dice_container.style.display = "inline-flex";
   document.querySelector("#container").appendChild(dice_container);
 }
 
-
+// makes an element draggable, based on impl in : https://www.w3schools.com/howto/howto_js_draggable.asp
+// dist_rect is defined by {x, y, width, height}
 function make_draggable(element, dist_rect) {
 
   return new Promise ( (resolve, _reject) => {
 
-  // https://www.w3schools.com/howto/howto_js_draggable.asp
-  // dist_rec: {x, y, width, height}
-  let base_x=0;
-  let base_y=0;
-  let old_x=0;
-  let old_y=0;
-  let new_x=0;
-  let new_y=0;
+    let base_x=0;
+    let base_y=0;
+    let old_x=0;
+    let old_y=0;
+    let new_x=0;
+    let new_y=0;
+    element.onmousedown = drag_mouse_down;
 
-  element.onmousedown = drag_mouse_down;
+    function drag_mouse_down(e) {
 
-  function drag_mouse_down(e) {
+      e.preventDefault();
+      old_x = e.clientX;
+      old_y = e.clientY;
+      base_x = element.style.left;
+      base_y = element.style.top;
 
-    e.preventDefault();
-    old_x = e.clientX;
-    old_y = e.clientY;
-
-    base_x = element.style.left;
-    base_y = element.style.top;
-
-    document.onmouseup = release;
-    document.onmousemove = drag;
-
-  }
-
-  function drag(e) {
-
-    e.preventDefault();
-
-    new_x = old_x - e.clientX;
-    new_y = old_y - e.clientY;
-    old_x = e.clientX;
-    old_y = e.clientY;
-  
-    element.style.top = (element.offsetTop - new_y) + "px";
-    element.style.left = (element.offsetLeft - new_x) + "px";
-
-
-  }
-
-  function release(e) {
-
-    document.onmouseup = null;
-    document.onmousemove = null;
-
-    let x_bound_check = x_bounds(e.pageX, dist_rect.x, dist_rect.width);
-    let y_bound_check = y_bounds(e.pageY, dist_rect.y, dist_rect.height);
-
-    if (x_bound_check && y_bound_check) {
-        resolve("success")
-    } else {
-      element.style.top = base_y;
-      element.style.left = base_x;
-    
+      document.onmouseup = release;
+      document.onmousemove = drag;
     }
 
-  }
+    function drag(e) {
 
+      e.preventDefault();
+
+      new_x = old_x - e.clientX;
+      new_y = old_y - e.clientY;
+      old_x = e.clientX;
+      old_y = e.clientY;
+    
+      element.style.top = (element.offsetTop - new_y) + "px";
+      element.style.left = (element.offsetLeft - new_x) + "px";
+    }
+
+    function release(e) {
+
+      document.onmouseup = null;
+      document.onmousemove = null;
+
+      let x_bound_check = x_bounds(e.pageX, dist_rect.x, dist_rect.width);
+      let y_bound_check = y_bounds(e.pageY, dist_rect.y, dist_rect.height);
+
+      if (x_bound_check && y_bound_check) {
+          resolve("success")
+      } else {
+        element.style.top = base_y;
+        element.style.left = base_x;
+      }
+    }
   })
-
 }
 
+// switches the visibility of the annotation that shows the current turn
 function flip_arrow(next_player) {
   if (next_player === 0) {
     document.querySelector("#left").style.color = "black";
@@ -239,11 +209,13 @@ function flip_arrow(next_player) {
   }
 }
 
+// sample a random number between 1 and 6, different than the expect_value
 function get_different_random_value(except_value) {
   let random_value = 1 + Math.floor(Math.random() * 6);
   return (random_value === except_value) ? get_different_random_value(except_value) : random_value
 }
 
+// using two roles to cope with consecutive rolls of the same value
 async function change_roll(roll_value) {
 
   let random_value = get_different_random_value(roll_value);
@@ -251,66 +223,58 @@ async function change_roll(roll_value) {
   await update_roll(roll_value, 2000, 2000)
 }
 
+// based on : https://www.lenastanley.com/2020/06/roll-dice.html
 function update_roll(roll_value, timeout, resolve_timeout) {
 
   return new Promise ( (resolve, _reject) => {
 
     function roll() {
-      
       for (var i = 1; i <= 6; i++) {
         document.querySelector("#dice").classList.remove(`display_${i}`);
         if (i === roll_value) {
           document.querySelector("#dice").classList.add(`display_${roll_value}`);
         }
       }
-          
     }
 
     setTimeout(roll(), timeout);
     setTimeout(resolve, resolve_timeout);
-
   });
-
 }
 
+// check that current position of player on x axis compiles with the distination rect.
+// null for automatic, width for manual (user).
 function x_bounds(x, left_bound, width = null) {
-  // null for automatic, width for manual (user)
   if (width == null) {
-    let epsilon = 2;
-    return (((left_bound - epsilon) < x) && (x < (left_bound + epsilon)))
+    return (((left_bound - 2) < x) && (x < (left_bound + 2)))
   } else {
     return ((left_bound < x) && (x < (left_bound + width)));
   }
 }
 
+// check that current position of player on y axis compiles with the distination rect.
+// null for automatic, width for manual (user).
 function y_bounds(y, top_bound, height = null) {
-  // null for automatic, width for manual (user)
   if (height == null) {
-    let epsilon = 2;
-    return (((top_bound - epsilon) < y) && (y < (top_bound + epsilon)))
+    return (((top_bound - 2) < y) && (y < (top_bound + 2)))
   } else {
     return ((top_bound < y) && (y < (top_bound + height)));
   }
 }
 
+// translate a square on the board to its x value (left)
 function square_to_x(square, board_dim, board_length) {
- 
-  let x = board_length * ((square % board_dim) / board_dim);
-  return x
-  
+  return (board_length * ((square % board_dim) / board_dim));
 }
 
+// translate a square on the board to its y value (top)
 function square_to_y(square, board_dim, board_length) {
- 
-  let y = board_length - (board_length * (Math.floor(square / board_dim) / board_dim));
-  return y
-  
+  return (board_length - (board_length * (Math.floor(square / board_dim) / board_dim)));
 }
 
+// calculates the distination square given current position and rolled dice
+// the square is the ending finish line if the expected dist exceeds the board
 function get_dist_rect(current_value, dice_value, board_dim, board_length) {
-
-  // if the current value + dice value is witin the board, do this is dist
-  // if not, take the finish line
 
   let dist_square = Math.min(current_value + dice_value, -1 + board_dim*board_dim);
   let square_length = board_length / board_dim;
@@ -318,15 +282,8 @@ function get_dist_rect(current_value, dice_value, board_dim, board_length) {
   let y = square_to_y(dist_square, board_dim, board_length) - square_length;
   let x = square_to_x(dist_square, board_dim, board_length);
 
-  let dist_rect = {
-    x: x,
-    y: y,
-    width: square_length,
-    height: square_length
-  };
-
+  let dist_rect = {x: x, y: y, width: square_length, height: square_length};
   return dist_rect
-
 }
 
 function delay_game(delay_period) {
