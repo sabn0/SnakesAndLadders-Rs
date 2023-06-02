@@ -241,24 +241,35 @@ function flip_arrow(next_player) {
   }
 }
 
-function update_roll(roll_value) {
-  console.log("rolled", roll_value);
+function get_different_random_value(except_value) {
+  let random_value = 1 + Math.floor(Math.random() * 6);
+  return (random_value === except_value) ? get_different_random_value(except_value) : random_value
+}
+
+async function change_roll(roll_value) {
+
+  let random_value = get_different_random_value(roll_value);
+  await update_roll(random_value, 2000, 750);
+  await update_roll(roll_value, 2000, 2000)
+}
+
+function update_roll(roll_value, timeout, resolve_timeout) {
+
   return new Promise ( (resolve, _reject) => {
 
     function roll() {
-      //document.querySelector("#dice").classList.add('display_identity');
+      
       for (var i = 1; i <= 6; i++) {
         document.querySelector("#dice").classList.remove(`display_${i}`);
         if (i === roll_value) {
           document.querySelector("#dice").classList.add(`display_${roll_value}`);
         }
       }
-      //document.querySelector("#dice").classList.add('display_identity');
-      
+          
     }
 
-    setTimeout(roll(), 2000);
-    setTimeout(resolve, 2000);
+    setTimeout(roll(), timeout);
+    setTimeout(resolve, resolve_timeout);
 
   });
 
@@ -456,7 +467,7 @@ window.addEventListener("DOMContentLoaded", async function () {
             document.querySelector("#roll_button").addEventListener("click", async function (e) {
 
               // show rolled value to user
-              await update_roll(roll_value);
+              await change_roll(roll_value);
 
               // make pawn draggable so that the user can move it to distination
               // this is also in promise, to wait until succesful movement
@@ -474,7 +485,7 @@ window.addEventListener("DOMContentLoaded", async function () {
           // We want to show the rolled dice, wait, then move the pawn smoothly 
 
           // show rolled value to user
-          await update_roll(roll_value);
+          await change_roll(roll_value);
 
           // move smooth
           await move_element(player_element, distination_rect);
