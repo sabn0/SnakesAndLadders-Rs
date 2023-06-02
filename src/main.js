@@ -29,7 +29,7 @@ async function build_board(board_dim, board_length) {
   // create a colored square for every position on the board
   let canvas = document.createElement("canvas");
   canvas.id = "board_canvas";
-  canvas.style.position = "relative";
+  canvas.setAttribute("class", "board_canvas");
   document.querySelector("#container").appendChild(canvas);
 
   let ctx = canvas.getContext("2d");
@@ -128,25 +128,22 @@ async function build_players(n, board_dim, board_length) {
   // receive number of players and build img objects
   for (var i = 0; i < n; i ++ ) {
     
-    let player_id = i;
-    let asset = assets_path + "player" + player_id + ".png";
-    
-    // position - top left corner of the 0 square
-    let top = `${board_length - square_length}px`;
-    let left = `${0}px`;
-
     let player = document.createElement('img');
-    player.src = asset;
+    player.id = i;
+    player.setAttribute("class", "player");
+
+    player.src = assets_path + "player" + player.id + ".png";
     player.width = square_length / 2;
     player.height = square_length / 2;
+    player.style.top = `${board_length - square_length}px`;
+    player.style.left = `${0}px`;
     player.style.position = "absolute";
-    player.style.top = top;
-    player.style.left = left;
+
     //player.style.border = "2px solid black"; // for debug
     player.style.padding = `${square_length / 4}px`;
     player.style.paddingLeft = `${side_pad[i]}px`;
     player.style.paddingRight = `${side_pad[1-i]}px`;
-    player.id = player_id;
+
     players.push(player);
   }
 
