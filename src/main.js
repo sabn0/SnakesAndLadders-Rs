@@ -424,28 +424,28 @@ function end_game(winning_player) {
 window.addEventListener("DOMContentLoaded", async function () {
 
   container = document.querySelector("#container");
-  let board_dim = 10;
-  let finish_line = -1+ (board_dim* board_dim);
-  let board_length = 600;
-  let n_players = 2;
-  let delay_period = 500;
 
   document.querySelector("#start_button").addEventListener("click", async function (e) {
 
     // retrive serialized board from backend
     let board = await invoke('init_game').then((response) => response ).catch((e) => console.error(e));
+    let board_dim = board.board_dim;
+    let board_length = board.board_length;
+    let n_players = board.players.length;
+    let snakes = board.snakes;
+    let ladders = board.ladders;
 
     // build initial screen (board, snakes, ladders, draggable players, dice, etc)
     e.preventDefault();
     await build_board(board_dim, board_length);
-    build_sliders(board.ladders, "ladders", board_dim, board_length);
-    build_sliders(board.snakes, "snakes", board_dim, board_length);
+    build_sliders(ladders, "ladders", board_dim, board_length);
+    build_sliders(snakes, "snakes", board_dim, board_length);
     show_dice_area();
     build_players(n_players, board_dim, board_length);
 
     // play a turn while game doesn't end
     let next_player;
-    let is_win = await invoke('is_win', {finish_line: finish_line}).then((response) => response ).catch((e) => console.error(e));
+    let is_win;
     do {
       
       // draw a dice value and switch to next player
@@ -501,17 +501,17 @@ window.addEventListener("DOMContentLoaded", async function () {
       let new_position = await invoke('slider_bust').then((response) => response ).catch((e) => console.error(e));
       await bust_on_item(player_element, player_position + roll_value, new_position, board_dim, board_length);
 
-      // delay game before continuing
-      await delay_game(delay_period);
+      // delay game for 0.5 second before continuing
+      await delay_game(500);
 
-      is_win = await invoke('is_win', {finish_line: finish_line}).then((response) => response ).catch((e) => console.error(e));
+      is_win = await invoke('is_win').then((response) => response ).catch((e) => console.error(e));
 
     }
     while ( !is_win );
 
     
     // print win / lose message on screen
-    await delay_game(delay_period);
+    await delay_game(250);
     end_game(next_player);
 
   });
