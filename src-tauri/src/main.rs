@@ -33,20 +33,11 @@ struct BoardState(Arc<Mutex<Board>>);
 #[tauri::command(rename_all = "snake_case")]
 fn init_game(board_state: State<'_, BoardState>) -> Result<Board, BoardStateError> {
 
-    // this commands returns an initialized board with default parameters
-    let default_board = Board::default();
-    let mut board = match board_state.0.lock() {
-        Ok(board) => board,
+    // this commands returns the initialized board with default parameters
+    match board_state.0.lock() {
+        Ok(board) => return Ok(board.clone()),
         Err(_) => return Err(BoardStateError)
     };
-
-    board.ladders = default_board.ladders;
-    board.snakes = default_board.snakes;
-    board.players = default_board.players;
-    board.next = default_board.next;
-    board.dice = default_board.dice;
-
-    Ok(board.clone())
 }
 
 #[tauri::command(rename_all = "snake_case")]
