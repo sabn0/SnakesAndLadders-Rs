@@ -242,16 +242,18 @@ function flip_arrow(next_player) {
 }
 
 function update_roll(roll_value) {
-  console.log(roll_value);
+  console.log("rolled", roll_value);
   return new Promise ( (resolve, _reject) => {
 
     function roll() {
+      //document.querySelector("#dice").classList.add('display_identity');
       for (var i = 1; i <= 6; i++) {
         document.querySelector("#dice").classList.remove(`display_${i}`);
         if (i === roll_value) {
           document.querySelector("#dice").classList.add(`display_${roll_value}`);
         }
       }
+      //document.querySelector("#dice").classList.add('display_identity');
       
     }
 
@@ -460,11 +462,9 @@ window.addEventListener("DOMContentLoaded", async function () {
               // this is also in promise, to wait until succesful movement
               await make_draggable(player_element, distination_rect);
 
-              e.stopImmediatePropagation();
-
               resolve("success");
 
-            });
+            }, {once: true});
 
           });
 
@@ -472,7 +472,6 @@ window.addEventListener("DOMContentLoaded", async function () {
 
           // else : move opponent pawn to distination
           // We want to show the rolled dice, wait, then move the pawn smoothly 
-
 
           // show rolled value to user
           await update_roll(roll_value);
