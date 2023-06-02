@@ -37,13 +37,13 @@ html, body {
 }
 
 .tauri_line {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  text-align: center;
 }
 
 .tauri_logo {
-  width: 50px;
+  margin: auto;
+  display: list-item;
+  width: 125px;
   height: 50px; 
 }
 
