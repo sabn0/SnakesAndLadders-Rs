@@ -70,17 +70,16 @@ fn switch_player(board_state: State<'_, BoardState>) -> Result<usize, BoardState
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn is_win(board_state: State<'_, BoardState>, finish_line: usize) -> Result<bool, BoardStateError> {
+fn is_win(board_state: State<'_, BoardState>) -> Result<bool, BoardStateError> {
 
     // this command invokes the board's win functionality and returns the answer (is end game)
-    // based on the end point of the board
 
     let board = match board_state.0.lock() {
         Ok(board) => board,
         Err(_) => return Err(BoardStateError::BoardLockError)
     };
 
-    let end_game = board.win(finish_line)?;
+    let end_game = board.win()?;
     Ok(end_game)
 }
 
@@ -137,6 +136,13 @@ struct Player {
     position: usize
 }
 
+// Sets board dimenstions for frontend
+#[derive(Clone, Serialize)]
+struct BoardMeasures {
+    board_dim: usize,
+    board_length: usize
+}
+
 // Board has the vital states of the game, including ladders and snakes positions on the board (start, end) vecs,
 // players vec, the current player (next) and the dice object. Board needs to implement serialize, as it is returend
 // to the frontend to draw the players, snakes, ladders etc.
@@ -146,7 +152,8 @@ pub struct Board {
     snakes: Vec<(usize, usize)>,
     players: Vec<Player>,
     next: Option<usize>,
-    dice: Dice
+    dice: Dice,
+    measures: BoardMeasures
 }
 
 // The trait that defines the behavior of a Dice
@@ -165,23 +172,25 @@ impl Default for Board {
 
     fn default() -> Self {
         
-        // these parameters should be from somewhere else if possible
-        let board_dim = 10;
-        let n = 2*2*4; // have 4 snakes and 4 letters
+        let board_dim = 10; // the number of squares on each dim of the board
+        let board_length = 600; // set as the width of the squared board
+        let n_items = 2*2*4; // have 4 snakes and 4 letters
         let item_limit = (board_dim*board_dim) -1; // don't allow snake / ladder on last + first squares
+        let n_players = 2; // the default user vs comp
 
         let sort_pair = |a: usize, b: usize| -> (usize, usize) { if a > b { (b, a) } else { (a, b) } };
 
         // sample ladders and snakes positions from 1..board_dim**2
-        let positions = (1..item_limit).choose_multiple(&mut rand::thread_rng(), n);
+        let positions = (1..item_limit).choose_multiple(&mut rand::thread_rng(), n_items);
         let (ladders, snakes): (Vec<(usize, usize)>, Vec<(usize, usize)>) = positions.chunks(2*2).map(|quad| {
             (sort_pair(quad[0], quad[1]), sort_pair(quad[2], quad[3]))
         }).unzip();
 
         // generate two players
-        let players = (0..=1).into_iter().map(|i| Player {position: 0, player_id: i }).collect::<Vec<Player>>();
+        let players = (0..n_players).into_iter().map(|i| Player {position: 0, player_id: i }).collect::<Vec<Player>>();
+        let measures = BoardMeasures { board_dim: board_dim, board_length: board_length };
 
-        Board { ladders: ladders, snakes: snakes, players: players, next: None, dice: Dice{} }
+        Board { ladders: ladders, snakes: snakes, players: players, next: None, dice: Dice{}, measures: measures }
     }
 }
 
@@ -205,7 +214,7 @@ trait GameActions {
     // should promote the current player's position a step of value
     fn step(&mut self, value: usize) -> Result<(), BoardStateError>;
     // should check if the position of the current player exceeds the finish_line
-    fn win(&self, finish_line: usize) -> Result<bool, BoardStateError>;
+    fn win(&self) -> Result<bool, BoardStateError>;
     // should switch to the next player
     fn switch(&mut self);
 }
@@ -237,8 +246,9 @@ impl GameActions for Board {
         Ok(())
     }
 
-    fn win(&self, finish_line: usize) -> Result<bool, BoardStateError> {
+    fn win(&self) -> Result<bool, BoardStateError> {
         let next = self.next_is_some()?;
+        let finish_line = (-1 + (self.measures.board_dim as i32).pow(2)) as usize;
         let is_win = self.players[next].position >= finish_line;
         Ok(is_win)
     }
