@@ -459,7 +459,7 @@ window.addEventListener("DOMContentLoaded", async function () {
       let distination_rect = get_dist_rect(player_position, roll_value, board_dim, board_length);
 
       // update backend states for new position
-      await invoke('advance', {step_size: roll_value});
+      await invoke('advance', {step_size: roll_value}).then().catch((e) => console.error(e));
 
       if (next_player === 0) {
 
