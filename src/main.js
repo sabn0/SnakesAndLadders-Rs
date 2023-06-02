@@ -381,7 +381,6 @@ window.addEventListener("DOMContentLoaded", async function () {
 
     // retrive serialized board from backend
     let board = await invoke('init_game').then((response) => response ).catch((e) => console.error(e));
-    console.log(board);
     let board_dim = board.measures.board_dim;
     let board_length = board.measures.board_length;
     let n_players = board.players.length;
