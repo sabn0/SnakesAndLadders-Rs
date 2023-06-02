@@ -66,8 +66,8 @@ html, body {
   text-align: center;
   justify-content: center;
   align-items: center;
-  height: 100px;
-  width: 600px;
+  height: 90px;
+  width: 595px;
 }
 
 .dice_container > * {
@@ -105,7 +105,7 @@ html, body {
 }
 
 .col {
-  flex: 20%;
+  width: 20%;
 }
 
 .side:nth-child(3) {
@@ -156,6 +156,7 @@ html, body {
   transform: rotateX(450deg) rotateZ(-720deg);
 }
 
+
 /* 1 */
 #side3_dot1, #side4_dot1, #side5_dot1, #side6_dot1 {
   left: 20%;
@@ -202,23 +203,18 @@ html, body {
   top: 80%;
 }
 
-
-#roll_button {
-  background-color: rgb(52, 101, 164);
+#left, #right {
+  display: flex;
+  flex-direction: column;
+  color: white;
 }
 
-
-#left_arrow {
-  font-size: 60px;
+#left_arrow, #right_arrow {
+  font-size: 50px;
 }
 
-#right_arrow {
-  font-size: 60px;
-}
-
-#comp_button {
-  border-radius: 8px;
-  background-color: rgb(21, 132, 102);
+#left_msg, #right_msg{
+  font-size: 15px;
 }
 
 h1 {
@@ -230,33 +226,27 @@ h2 {
   font-size: 20px;
 }
 
-input,
-button {
+#comp_button {
+  background-color: rgb(21, 132, 102);
+}
+
+#roll_button:hover {background-color: lightgray}
+
+#roll_button {
+  background-color: rgb(52, 101, 164);
+}
+
+.btn {
   border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+  background-color: gray;
+  font-weight: bold;
+  color: white;
 }
 
-button {
-  cursor: pointer;
-}
+.btn:hover {background-color: lightgray}
 
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
-  outline: none;
+.btn:active {
+  background-color: lightgray;
+  box-shadow: 0 5px #666;
+  transform: translateY(2px);
 }

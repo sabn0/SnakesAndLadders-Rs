@@ -233,11 +233,11 @@ function make_draggable(element, dist_rect) {
 
 function flip_arrow(next_player) {
   if (next_player === 0) {
-    document.querySelector("#left_arrow").innerHTML = '&larr;';
-    document.querySelector("#right_arrow").innerHTML = '';
+    document.querySelector("#left").style.color = "black";
+    document.querySelector("#right").style.color = "white";
   } else {
-    document.querySelector("#right_arrow").innerHTML = '&rarr;';
-    document.querySelector("#left_arrow").innerHTML = '';
+    document.querySelector("#right").style.color = "black";
+    document.querySelector("#left").style.color = "white";
   }
 }
 
@@ -411,9 +411,9 @@ function end_game(winning_player) {
   container.appendChild(message);
 
   if (winning_player === 0) {
-    message.innerHTML = "Yon won !";
+    message.innerHTML = "You won ! ";
   } else {
-    message.innerHTML = "Yon lost :( ";
+    message.innerHTML = "You lost :( ";
   }
 
 }
