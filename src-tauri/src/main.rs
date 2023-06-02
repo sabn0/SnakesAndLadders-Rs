@@ -1,22 +1,45 @@
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+// backend uses tauri commands on top of home-made game logic 
+use tauri::State;
+use std::{sync::{Mutex, Arc}, error::Error, fmt::Display};
+use serde::Serialize;
+use rand::{self, seq::{SliceRandom, IteratorRandom}, Rng};
+
 
 fn main() {
     tauri::Builder::default()
         .manage(BoardState::default())
-        .invoke_handler(tauri::generate_handler![init_game, draw_turn, switch_player, is_win, advance, get_player_position, slider_bust])
+        .invoke_handler(tauri::generate_handler![
+            init_game, 
+            draw_turn, 
+            switch_player, 
+            is_win, 
+            advance, 
+            get_player_position, 
+            slider_bust
+        ])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("error while running the application");
 }
 
-//// tauri commands
-#[tauri::command(rename_all = "snake_case")]
-fn init_game(board_state: State<'_, BoardState>) -> Result<Board, String> {
+// A struct that locks a Board structure that handles the logic and states
+#[derive(Default)]
+struct BoardState(Arc<Mutex<Board>>);
 
-    // update board to default and return serialized snakes and ladders
+// tauri commands
+// these commands are invoked from the frontend side and use the game logic
+#[tauri::command(rename_all = "snake_case")]
+fn init_game(board_state: State<'_, BoardState>) -> Result<Board, BoardStateError> {
+
+    // this commands returns an initialized board with default parameters
     let default_board = Board::default();
-    let mut board = board_state.0.lock().expect("could not lock board game");
+    let mut board = match board_state.0.lock() {
+        Ok(board) => board,
+        Err(_) => return Err(BoardStateError)
+    };
+
     board.ladders = default_board.ladders;
     board.snakes = default_board.snakes;
     board.players = default_board.players;
@@ -27,72 +50,107 @@ fn init_game(board_state: State<'_, BoardState>) -> Result<Board, String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn draw_turn(board_state: State<'_, BoardState>) -> usize {
+fn draw_turn(board_state: State<'_, BoardState>) -> Result<usize, BoardStateError> {
 
-    let board = board_state.0.lock().expect("could not lock board game");
+    // this command invokes the board's dice's draw functioanlity and returns a new dice value
+
+    let board = match board_state.0.lock() {
+        Ok(board) => board,
+        Err(_) => return Err(BoardStateError)
+    };
     let roll_value = board.dice.draw();
-    roll_value
+    Ok(roll_value)
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn switch_player(board_state: State<'_, BoardState>) -> usize {
+fn switch_player(board_state: State<'_, BoardState>) -> Result<usize, BoardStateError> {
 
-    let mut board = board_state.0.lock().expect("could not lock board game");
+    // this command invokes the board's switch functionality and returns the id of the next player
+
+    let mut board = match board_state.0.lock() {
+        Ok(board) => board,
+        Err(_) => return Err(BoardStateError)
+    };
     board.switch();
-    board.next
+    let next_player = board.next;
+    Ok(next_player)
 
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn is_win(board_state: State<'_, BoardState>, finish_line: usize) -> bool {
+fn is_win(board_state: State<'_, BoardState>, finish_line: usize) -> Result<bool, BoardStateError> {
 
-    let board = board_state.0.lock().expect("could not lock board game");
-    board.win(finish_line)
+    // this command invokes the board's win functionality and returns the answer (is end game)
+    // based on the end point of the board
+
+    let board = match board_state.0.lock() {
+        Ok(board) => board,
+        Err(_) => return Err(BoardStateError)
+    };
+
+    let end_game = board.win(finish_line);
+    Ok(end_game)
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn advance(board_state: State<'_, BoardState>, step_size: usize) {
+fn advance(board_state: State<'_, BoardState>, step_size: usize) -> Result<(), BoardStateError> {
 
-    let mut board = board_state.0.lock().expect("could not lock board game");
+    // this command invokes the board's step functionality that updates the board's player's position
+    // based on the given step size
+
+    let mut board = match board_state.0.lock() {
+        Ok(board) => board,
+        Err(_) => return Err(BoardStateError)
+    };
     board.step(step_size);
+    Ok(())
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn get_player_position(board_state: State<'_, BoardState>) -> usize {
+fn get_player_position(board_state: State<'_, BoardState>) -> Result<usize, BoardStateError> {
 
-    let board = board_state.0.lock().expect("could not lock board game");
-    board.players[board.next].position
+    // this command invokes the board's current player position field and return the position
+
+    let board = match board_state.0.lock() {
+        Ok(board) => board,
+        Err(_) => return Err(BoardStateError)
+    };
+    let position = board.players[board.next].position;
+    Ok(position)
 }
 
 #[tauri::command(rename_all = "snake_case")]
-fn slider_bust(board_state: State<'_, BoardState>) -> usize {
+fn slider_bust(board_state: State<'_, BoardState>) -> Result<usize, BoardStateError> {
 
-    let mut board = board_state.0.lock().expect("could not lock board game");
+    // this command invokes the board's bust functionality and returns the new position
+
+    let mut board = match board_state.0.lock() {
+        Ok(board) => board,
+        Err(_) => return Err(BoardStateError)
+    };
     board.bust();
-    board.players[board.next].position
+    let position = board.players[board.next].position;
+    Ok(position)
 }
 
-/////////////
+////////////////
+// Game logic //
+////////////////
 
-use std::{sync::{Mutex, Arc}};
-use serde::Serialize;
-use tauri::State;
-use rand::{self, seq::{SliceRandom, IteratorRandom}, Rng};
-
-// need to implement default and serialize
-#[derive(Default)]
-struct BoardState(Arc<Mutex<Board>>);
-
+// Dice implements a draw functionality to retrieve a random number of dice roll
 #[derive(Clone, Serialize)]
 struct Dice;
 
+// Player has a player id which is unique, and a positions on the board
 #[derive(Clone, Serialize)]
 struct Player {
     player_id: usize,
     position: usize
 }
 
-// need to implement serialize and clone
+// Board has the vital states of the game, including ladders and snakes positions on the board (start, end) vecs,
+// players vec, the current player (next) and the dice object. Board needs to implement serialize, as it is returend
+// to the frontend to draw the players, snakes, ladders etc.
 #[derive(Clone, Serialize)]
 pub struct Board {
     ladders: Vec<(usize, usize)>,
@@ -102,6 +160,7 @@ pub struct Board {
     dice: Dice
 }
 
+// The trait that defines the behavior of a Dice
 trait Roll {
     fn draw(&self) -> usize;
 }
@@ -112,11 +171,12 @@ impl Roll for Dice {
     }
 }
 
-
+// Board implements Default, which is used when the app is initialized
 impl Default for Board {
 
     fn default() -> Self {
-
+        
+        // these parameters should be from somewhere else if possible
         let board_dim = 10;
         let n = 2*2*4; // have 4 snakes and 4 letters
         let item_limit = (board_dim*board_dim) -1; // don't allow snake / ladder on last + first squares
@@ -137,11 +197,15 @@ impl Default for Board {
     }
 }
 
+// The behavior Board must implement for the game logic
 trait GameActions {
-
+    // should check the current position of the current player against the entries of snakes and ladders and update if needed
     fn bust(&mut self);
+    // should promote the current player's position a step of value
     fn step(&mut self, value: usize);
+    // should check if the position of the current player exceeds the finish_line
     fn win(&self, finish_line: usize) -> bool;
+    // should switch to the next player
     fn switch(&mut self);
 }
 
@@ -176,3 +240,16 @@ impl GameActions for Board {
     }
 
 }
+
+
+// Simple implementation of custom error for BoardState
+#[derive(Debug, Serialize)]
+pub struct BoardStateError;
+
+impl Display for BoardStateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "BoardStateError: failed to lock board game object during invoked command")
+    }
+}
+
+impl Error for BoardStateError { }
