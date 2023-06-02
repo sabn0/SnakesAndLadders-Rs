@@ -8,7 +8,8 @@ async function build_board(board_dim, board_length) {
 
   // leave us with empty screen
   document.querySelector("#start_screen").remove();
-  document.querySelector("#bg_logo").remove();
+  // document.querySelector("#bg_logo").remove();
+  document.querySelector("#bg_logo").style.display = "none";
 
   // random colors
   let colors = Array(
@@ -396,9 +397,9 @@ async function bust_on_item(element, current_position, new_position, board_dim, 
 function end_game(winning_player) {
 
   // remove all content in container div
-
   let container = document.querySelector("#container");
-  while (container.firstChild) {
+  document.querySelector("#bg_logo").style.display = "inline";
+  while (container.lastChild.id != "bg_logo") {
     container.removeChild(container.lastChild);
   }
   container.style.textAlign = "center";
@@ -407,7 +408,9 @@ function end_game(winning_player) {
   message.innerHTML = "";
   message.id = "end_msg";
   message.style.fontSize = "50px";
-  message.style.margin = "150px";
+  message.style.alignSelf = "center";
+  message.style.marginTop = "100px";
+  message.style.position = "absolute";
   container.appendChild(message);
 
   if (winning_player === 0) {
