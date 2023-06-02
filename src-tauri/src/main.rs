@@ -5,7 +5,7 @@
 use tauri::State;
 use std::{sync::{Mutex, Arc}, error::Error, fmt::Display};
 use serde::Serialize;
-use rand::{self, seq::{SliceRandom, IteratorRandom}, Rng};
+use rand::{self, seq::{IteratorRandom, SliceRandom}, Rng};
 
 
 fn main() {
@@ -36,7 +36,7 @@ fn init_game(board_state: State<'_, BoardState>) -> Result<Board, BoardStateErro
     // this commands returns the initialized board with default parameters
     match board_state.0.lock() {
         Ok(board) => return Ok(board.clone()),
-        Err(_) => return Err(BoardStateError)
+        Err(_) => return Err(BoardStateError::BoardLockError)
     };
 }
 
@@ -47,7 +47,7 @@ fn draw_turn(board_state: State<'_, BoardState>) -> Result<usize, BoardStateErro
 
     let board = match board_state.0.lock() {
         Ok(board) => board,
-        Err(_) => return Err(BoardStateError)
+        Err(_) => return Err(BoardStateError::BoardLockError)
     };
     let roll_value = board.dice.draw();
     Ok(roll_value)
@@ -60,10 +60,11 @@ fn switch_player(board_state: State<'_, BoardState>) -> Result<usize, BoardState
 
     let mut board = match board_state.0.lock() {
         Ok(board) => board,
-        Err(_) => return Err(BoardStateError)
+        Err(_) => return Err(BoardStateError::BoardLockError)
     };
+    
     board.switch();
-    let next_player = board.next;
+    let next_player = board.next.unwrap(); // safe to unwrap, potential error returned by switch
     Ok(next_player)
 
 }
@@ -76,10 +77,10 @@ fn is_win(board_state: State<'_, BoardState>, finish_line: usize) -> Result<bool
 
     let board = match board_state.0.lock() {
         Ok(board) => board,
-        Err(_) => return Err(BoardStateError)
+        Err(_) => return Err(BoardStateError::BoardLockError)
     };
 
-    let end_game = board.win(finish_line);
+    let end_game = board.win(finish_line)?;
     Ok(end_game)
 }
 
@@ -91,10 +92,9 @@ fn advance(board_state: State<'_, BoardState>, step_size: usize) -> Result<(), B
 
     let mut board = match board_state.0.lock() {
         Ok(board) => board,
-        Err(_) => return Err(BoardStateError)
+        Err(_) => return Err(BoardStateError::BoardLockError)
     };
-    board.step(step_size);
-    Ok(())
+    board.step(step_size)
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -104,10 +104,9 @@ fn get_player_position(board_state: State<'_, BoardState>) -> Result<usize, Boar
 
     let board = match board_state.0.lock() {
         Ok(board) => board,
-        Err(_) => return Err(BoardStateError)
+        Err(_) => return Err(BoardStateError::BoardLockError)
     };
-    let position = board.players[board.next].position;
-    Ok(position)
+    board.this_player_position()
 }
 
 #[tauri::command(rename_all = "snake_case")]
@@ -117,11 +116,10 @@ fn slider_bust(board_state: State<'_, BoardState>) -> Result<usize, BoardStateEr
 
     let mut board = match board_state.0.lock() {
         Ok(board) => board,
-        Err(_) => return Err(BoardStateError)
+        Err(_) => return Err(BoardStateError::BoardLockError)
     };
-    board.bust();
-    let position = board.players[board.next].position;
-    Ok(position)
+    board.bust()?;
+    board.this_player_position()
 }
 
 ////////////////
@@ -147,7 +145,7 @@ pub struct Board {
     ladders: Vec<(usize, usize)>,
     snakes: Vec<(usize, usize)>,
     players: Vec<Player>,
-    next: usize,
+    next: Option<usize>,
     dice: Dice
 }
 
@@ -182,52 +180,78 @@ impl Default for Board {
 
         // generate two players
         let players = (0..=1).into_iter().map(|i| Player {position: 0, player_id: i }).collect::<Vec<Player>>();
-        let next = players.choose(&mut rand::thread_rng()).unwrap().player_id;
 
-        Board { ladders: ladders, snakes: snakes, players: players, next: next, dice: Dice{} }
+        Board { ladders: ladders, snakes: snakes, players: players, next: None, dice: Dice{} }
+    }
+}
+
+impl Board {
+    fn next_is_some(&self) -> Result<usize, BoardStateError> {
+        match self.next {
+            Some(next) => Ok(next),
+            None => return Err(BoardStateError::NextPlayerError)
+        }
+    }
+
+    fn this_player_position(&self) -> Result<usize, BoardStateError> {
+        Ok(self.players[self.next_is_some()?].position)
     }
 }
 
 // The behavior Board must implement for the game logic
 trait GameActions {
     // should check the current position of the current player against the entries of snakes and ladders and update if needed
-    fn bust(&mut self);
+    fn bust(&mut self) -> Result<(), BoardStateError>;
     // should promote the current player's position a step of value
-    fn step(&mut self, value: usize);
+    fn step(&mut self, value: usize) -> Result<(), BoardStateError>;
     // should check if the position of the current player exceeds the finish_line
-    fn win(&self, finish_line: usize) -> bool;
+    fn win(&self, finish_line: usize) -> Result<bool, BoardStateError>;
     // should switch to the next player
     fn switch(&mut self);
 }
 
 impl GameActions for Board {
 
-    fn bust(&mut self) {
+    fn bust(&mut self) -> Result<(), BoardStateError> {
         
-        let current_position = self.players[self.next].position;
+        let next = self.next_is_some()?;
+        let current_position = self.players[next].position;
         
         // check for ladders bust and update
         if let Some(index) = self.ladders.iter().position(|&x| x.0 == current_position) {
-            self.players[self.next].position = self.ladders[index].1;
+            self.players[next].position = self.ladders[index].1;
         }
 
         // check for snakes fall and update
         if let Some(index) = self.snakes.iter().position(|&x| x.1 == current_position) {
-            self.players[self.next].position = self.snakes[index].0;
+            self.players[next].position = self.snakes[index].0;
         }
 
+        Ok(())
+
     }
 
-    fn step(&mut self, value: usize) {
-        self.players[self.next].position += value; 
+    fn step(&mut self, value: usize) -> Result<(), BoardStateError> {
+        let next = self.next_is_some()?;
+        self.players[next].position += value;
+        Ok(())
     }
 
-    fn win(&self, finish_line: usize) -> bool {
-        self.players[self.next].position >= finish_line
+    fn win(&self, finish_line: usize) -> Result<bool, BoardStateError> {
+        let next = self.next_is_some()?;
+        let is_win = self.players[next].position >= finish_line;
+        Ok(is_win)
     }
 
     fn switch(&mut self) {
-        self.next = 1 - self.next;
+
+        // switch either switches between players or initalizes for the first time
+        let next = match self.next_is_some() {
+            Ok(next) => 1 - next,
+            Err(_) => self.players.choose(&mut rand::thread_rng()).unwrap().player_id
+        };
+        self.next = Some(next);
+
     }
 
 }
@@ -235,11 +259,18 @@ impl GameActions for Board {
 
 // Simple implementation of custom error for BoardState
 #[derive(Debug, Serialize)]
-pub struct BoardStateError;
+pub enum BoardStateError {
+    BoardLockError, // if the board can't be locked before some command exe
+    NextPlayerError // if the next player is not initialized but used
+}
 
 impl Display for BoardStateError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "BoardStateError: failed to lock board game object during invoked command")
+        
+        match self {
+            BoardStateError::BoardLockError => write!(f, "BoardStateError: failed to lock board game object during invoked command"),
+            BoardStateError::NextPlayerError => write!(f, "BoardStateError: next player is used, but next player is none")
+        }
     }
 }
 
