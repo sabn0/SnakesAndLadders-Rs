@@ -19,6 +19,7 @@ html, body {
   padding: 0 !important;
 }
 
+/* div for the entire app */
 .container {
   margin: 0;
   display: flex;
@@ -26,6 +27,7 @@ html, body {
   transition: all .5s ease-in-out;
 }
 
+/* first screen styles */
 .bg_logo {
   width: 600px;
   height: 698px;
@@ -59,6 +61,35 @@ html, body {
   padding: 50px;
 }
 
+.btn {
+  border-radius: 10px;
+  background-color: gray;
+  font-weight: bold;
+  color: white;
+  font-size: 20px;
+  height: 40px;
+}
+
+.btn:hover {background-color: lightgray}
+
+.btn:active {
+  background-color: lightgray;
+  box-shadow: 0 5px #666;
+  transform: translateY(2px);
+}
+
+h1 {
+  text-align: center;
+}
+
+h2 {
+  text-align: center;
+  font-size: 20px;
+}
+
+/* end of first screen styles */
+
+/* user interaction styles */
 .dice_container {
   display: none;
   border: 2px solid black;
@@ -105,6 +136,7 @@ html, body {
   width: 20%;
 }
 
+/* dice tranforms and rotations */
 .side:nth-child(3) {
   transform: translateZ(1.4em);
 }
@@ -152,8 +184,9 @@ html, body {
 .display_1 {
   transform: rotateX(450deg) rotateZ(-720deg);
 }
+/* end of dice tranforms and rotations */
 
-
+/* dice side dots positions */
 /* 1 */
 #side3_dot1, #side4_dot1, #side5_dot1, #side6_dot1 {
   left: 20%;
@@ -199,6 +232,7 @@ html, body {
   left: 80%;
   top: 80%;
 }
+/* end of dice side dots positions */
 
 #left, #right {
   display: flex;
@@ -227,15 +261,6 @@ html, body {
   margin: 10px;
 }
 
-h1 {
-  text-align: center;
-}
-
-h2 {
-  text-align: center;
-  font-size: 20px;
-}
-
 #comp_button {
   background-color: rgb(21, 132, 102);
   display: flex;
@@ -249,22 +274,7 @@ h2 {
   background-color: rgb(52, 101, 164);
 }
 
-.btn {
-  border-radius: 10px;
-  background-color: gray;
-  font-weight: bold;
-  color: white;
-  font-size: 20px;
-  height: 40px;
-}
-
-.btn:hover {background-color: lightgray}
-
-.btn:active {
-  background-color: lightgray;
-  box-shadow: 0 5px #666;
-  transform: translateY(2px);
-}
+/* end of interaction styles */
 
 .board_canvas {
   position: relative;
