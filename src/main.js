@@ -158,7 +158,7 @@ async function build_players(n, board_dim, board_length) {
 
 async function show_dice_area() {
 
-  // change the dice containr from not visible to inline flex
+  // change the dice containr from not visible to ...
   let dice_container = document.querySelector("#dice_container");
   dice_container.style.display = "inline-flex";
   document.querySelector("#container").appendChild(dice_container);
