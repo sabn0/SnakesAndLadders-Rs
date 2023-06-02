@@ -459,7 +459,9 @@ window.addEventListener("DOMContentLoaded", async function () {
               // make pawn draggable so that the user can move it to distination
               // this is also in promise, to wait until succesful movement
               await make_draggable(player_element, distination_rect);
-                  
+
+              e.stopImmediatePropagation();
+
               resolve("success");
 
             });
