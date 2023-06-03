@@ -13,7 +13,7 @@ First you need to have [Rust](https://doc.rust-lang.org/book/ch01-01-installatio
 Then run (on linux):
 ```
 git clone https://github.com/Sabn0/SnakesAndLadders-Rs.git
-cd SnakesAndLadders-Rs-main
+cd SnakesAndLadders-Rs
 npm install
 npm run tauri dev
 ```
