@@ -17,12 +17,12 @@ npm install
 npm run tauri dev
 ```
 
-I also attached an sh script above.
+I also attached an sh script above. Required 2.3 GB when built on my local machine.
 
 ## Software
 Programmed using the amazing [Tauri](https://github.com/tauri-apps/tauri) framework:
 * Rust (vs 1.69.0) for the backend.
-* JavaScript, HTML and CSS for the frontend. 
+* JavaScript, HTML and CSS for the frontend.
 
 ## References
 The dice implementation was heavily based on the nice tutorial [here](https://lenadesign.org/2020/06/18/roll-the-dice/).
