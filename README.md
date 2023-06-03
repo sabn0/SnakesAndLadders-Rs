@@ -1,4 +1,8 @@
 # SnakesAndLadders-Rs
+
+![rust version](https://img.shields.io/badge/rust-1.69.0-blue)
+![Tauri version](https://img.shields.io/badge/Tauri-1.3-orange)
+
 An implementatation of the famous and popular snakes and ladders game, as a desktop app.
 
 ## How to run
@@ -6,7 +10,7 @@ Requires Rust and npm (NodeJS).
 
 ## Software
 Programmed using the amazing [Tauri](https://github.com/tauri-apps/tauri) framework:
-* Rust (vs 1.69.1) for the backend.
+* Rust (vs 1.69.0) for the backend.
 * JavaScript, HTML and CSS for the frontend. 
 
 ## References
