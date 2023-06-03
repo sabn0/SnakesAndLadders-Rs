@@ -4,4 +4,3 @@ src-tauri/Cargo.lock
 node_modules
 package-lock.json
 todo.txt
-*.gif
