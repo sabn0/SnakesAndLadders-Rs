@@ -9,7 +9,8 @@ Ladders and snakes are generated randomaly every time the game is initialized.
 <img src="https://github.com/Sabn0/SnakesAndLadders-Rs/assets/45892555/77fd9cf5-1120-4919-a741-1624d93662fb" width="300" height="350">
 
 ## How to play
-Requires Rust and npm. In order to play (on linux):
+First you need to have [Rust](https://doc.rust-lang.org/book/ch01-01-installation.html) and npm on your machine.
+Then run (on linux):
 ```
 git clone https://github.com/Sabn0/SnakesAndLadders-Rs.git
 cd SnakesAndLadders-Rs-main
