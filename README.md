@@ -12,7 +12,7 @@ Ladders and snakes are generated randomaly every time the game is initialized.
 Requires Rust and npm. In order to play (on linux):
 ```
 git clone https://github.com/Sabn0/SnakesAndLadders-Rs.git
-cd SnakesAndLadders-Rs
+cd SnakesAndLadders-Rs-main
 npm install
 npm run tauri dev
 ```
