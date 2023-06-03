@@ -1,11 +1,16 @@
 # SnakesAndLadders-Rs
-Starting ...
+An implementatation of the famous and popular snakes and ladders game, as a desktop app.
 
-## Tauri + Vanilla
+## How to run
+Requires Rust and npm (NodeJS). 
 
-This template should help get you started developing with Tauri in vanilla HTML, CSS and Javascript.
+## Software
+Programmed using the amazing [Tauri](https://github.com/tauri-apps/tauri) framework:
+* Rust (vs 1.69.1) for the backend.
+* JavaScript, HTML and CSS for the frontend. 
 
-## Recommended IDE Setup
+## References
+The dice implementation was heavily based on the nice implementation [here](https://lenadesign.org/2020/06/18/roll-the-dice/).
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
-
+## License
+Under [MIT license]() and [Apache License, Version 2.0]().
