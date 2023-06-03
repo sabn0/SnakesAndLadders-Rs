@@ -5,6 +5,7 @@
 
 An implementatation of the famous and popular snakes and ladders game, as a desktop app.\
 Ladders and snakes are generated randomaly every time the game is initialized.
+<br><br>
 <img src="https://github.com/Sabn0/SnakesAndLadders-Rs/blob/main/src/assets/demo.gif" width="300" height="350">
 
 ## How to play
