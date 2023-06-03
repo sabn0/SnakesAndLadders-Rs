@@ -4,6 +4,7 @@
 ![Tauri version](https://img.shields.io/badge/Tauri-1.3-orange)
 
 An implementatation of the famous and popular snakes and ladders game, as a desktop app.
+Ladders and snakes are generated randomaly every time the game is initialized.
 
 ## How to run
 Requires Rust and npm (NodeJS). 
