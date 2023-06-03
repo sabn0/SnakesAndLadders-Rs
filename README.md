@@ -25,7 +25,7 @@ Programmed using the amazing [Tauri](https://github.com/tauri-apps/tauri) framew
 * JavaScript, HTML and CSS for the frontend. 
 
 ## References
-The dice implementation was heavily based on the nice implementation [here](https://lenadesign.org/2020/06/18/roll-the-dice/).
+The dice implementation was heavily based on the nice tutorial [here](https://lenadesign.org/2020/06/18/roll-the-dice/).
 
 ## License
 Under [MIT license](https://github.com/Sabn0/SnakesAndLadders-Rs/blob/main/LICENSE-MIT) and [Apache License, Version 2.0](https://github.com/Sabn0/SnakesAndLadders-Rs/blob/main/LICENSE-APACHE).
