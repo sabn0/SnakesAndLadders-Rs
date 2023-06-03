@@ -28,4 +28,4 @@ Programmed using the amazing [Tauri](https://github.com/tauri-apps/tauri) framew
 The dice implementation was heavily based on the nice implementation [here](https://lenadesign.org/2020/06/18/roll-the-dice/).
 
 ## License
-Under [MIT license]() and [Apache License, Version 2.0]().
+Under [MIT license](https://github.com/Sabn0/SnakesAndLadders-Rs/blob/main/LICENSE-MIT) and [Apache License, Version 2.0]().
