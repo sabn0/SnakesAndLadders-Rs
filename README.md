@@ -6,7 +6,7 @@
 An implementatation of the famous and popular snakes and ladders game, as a desktop app.\
 Ladders and snakes are generated randomaly every time the game is initialized.
 
-## How to run
+## How to play
 Requires Rust and npm. In order to play (on linux):
 ```
 git clone https://github.com/Sabn0/SnakesAndLadders-Rs.git
@@ -14,6 +14,8 @@ cd SnakesAndLadders-Rs
 npm install
 npm run tauri dev
 ```
+
+I also attached an sh script above.
 
 ## Software
 Programmed using the amazing [Tauri](https://github.com/tauri-apps/tauri) framework:
