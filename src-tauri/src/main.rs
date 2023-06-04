@@ -122,7 +122,9 @@ fn slider_bust(board_state: State<'_, BoardState>) -> Result<usize, BoardStateEr
 }
 
 ////////////////
+////////////////
 // Game logic //
+////////////////
 ////////////////
 
 // Dice implements a draw functionality to retrieve a random number of dice roll
